@@ -274,7 +274,7 @@ trimReads <- function(){
   
   status <- tryCatch(eval(as.call(append(getTrimmedSeqs,
                                          unname(as.list(completeMetadata[c("qualityThreshold", "badQualityBases",
-                                                                           "qualitySlidingWindow", "primer", "ltrBit", "uniqRegion", 
+                                                                           "qualitySlidingWindow", "primer", "ltrBit",
                                                                            "largeLTRFrag", "linkerSequence", "linkerCommon",
                                                                            "mingDNA", "read1", "read2", "alias", "vectorSeq")]))))),
                      error=function(e){print(paste0("Caught error: ", e$message))})

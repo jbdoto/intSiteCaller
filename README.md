@@ -52,6 +52,7 @@ At present names are hard-coded and * can only be `I1`, `R1` and `R2`
 	* `gender` is either 'm' of 'f' for male/female, respectively
 	* `primer` is the primer sequence as seen in MiSeq read 2
 	* `ltrBit` is the LTR sequence as seen in MiSeq read 2
+	* `uniqRegion` is the region of the LTR (U3 or U5) targeted by primers during amplification
 	* `largeLTRFrag` is 43nt of the LTR sequence as seen from MiSeq read **1**
 	* `vectorSeq` is a filepath (either absolute or relative to the *primary analysis directory*) to the vector sequence in fasta format -- it is encouraged to place the vector sequence directly in the primary analysis directory, although that is not a requirement
 
@@ -82,7 +83,6 @@ and the output is a tab delimited summary table describing each step.
 * `-j`, `--jobID` - Unique name by which to identify this intance of intSiteCaller [default: intSiteCallerJob]
 * `-c`, `--codeDir` - Directory where intSiteCaller code is stored, can be relative or absolute [default: codeDir as detected by Rscript]
 * `-p`, `--primaryAnalysisDir` - Location of primary analysis directory, can be relative or absolute [default: .]
-* `-m`, `--prep_method` - Preparation method used during amplification (U5 or U3) [default: U5]
 * `-h`, `--help` - Show the help message and exit
 
 ## Code pipeline example for a run `run20150505`

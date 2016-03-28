@@ -29,17 +29,12 @@ parser$add_argument("-c", "--codeDir", type="character", nargs=1,
 parser$add_argument("-p", "--primaryAnalysisDir", type="character",
                     default=".",
                     help="Location of primary analysis directory, can be relative or absolute [default: %(default)s]")
-parser$add_argument("-m", "--prep_method", type="character",
-                    default="U5",
-                    help="Preparation method used during amplification (U5 or U3). [default: %(default)s]")
 
 parsedArgs <- parser$parse_args(commandArgs(trailingOnly = TRUE))
 
 if( !any(commandArgs(trailingOnly = TRUE) %in% c("-j", "--jobID")) ) {
     parsedArgs$jobID <- basename(normalizePath(parsedArgs$primaryAnalysisDir))
 }
-
-prep_method <- parsedArgs$prep_method
 
 source(file.path(parsedArgs$codeDir, "programFlow.R")) 
 

@@ -39,6 +39,8 @@ if( !any(commandArgs(trailingOnly = TRUE) %in% c("-j", "--jobID")) ) {
     parsedArgs$jobID <- basename(normalizePath(parsedArgs$primaryAnalysisDir))
 }
 
+prep_method <- parsedArgs$prep_method
+
 source(file.path(parsedArgs$codeDir, "programFlow.R")) 
 
 processMetadata()

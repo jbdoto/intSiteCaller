@@ -110,12 +110,12 @@ callIntSites <- function(){
 }
 
 demultiplex <- function(){
-  I1 <- readFasta(list.files("Data", pattern="correctedI1-.", full.names=T))
+  I1 <- readFasta(list.files("Data", pattern="trimmedI1-.", full.names=T))
   
   completeMetadata <- get(load("completeMetadata.RData"))
   
-  I1 <- I1[as.vector(sread(I1)) %in% completeMetadata$bcSeq]
-  samples <- completeMetadata[match(as.character(sread(I1)), completeMetadata$bcSeq), "alias"]
+  I1 <- I1[substr(as.vector(sread(I1)), 1, 6) %in% completeMetadata$bcSeq]
+  samples <- completeMetadata[match(substr(as.character(sread(I1)), 1, 6), completeMetadata$bcSeq), "alias"]
   
   #only necessary if using native data - can parse out description w/ python
   I1Names <-  sapply(strsplit(as.character(ShortRead::id(I1)), " "), "[[", 1)#for some reason we can't dynamically set name/id on ShortRead!
@@ -169,11 +169,11 @@ errorCorrectBC <- function(){
     writeFasta(I1[[chunk]], file=paste0("Data/trimmedI1-", chunk, ".fasta"))
   }
     
-  bsub(jobName=sprintf("BushmanErrorCorrectWorker_%s[1-%s]", bushmanJobID, length(I1)),
-       maxmem=1000,
-       logFile="logs/errorCorrectWorkerOutput%I.txt",
-       command=paste0("python ", codeDir, "/errorCorrectIndices/processGolay.py")
-  )
+  #bsub(jobName=sprintf("BushmanErrorCorrectWorker_%s[1-%s]", bushmanJobID, length(I1)),
+  #     maxmem=1000,
+  #     logFile="logs/errorCorrectWorkerOutput%I.txt",
+  #     command=paste0("python ", codeDir, "/errorCorrectIndices/processGolay.py")
+  #)
   
   bsub(wait=sprintf("ended(BushmanErrorCorrectWorker_%s)", bushmanJobID),
        jobName=sprintf("BushmanDemultiplex_%s", bushmanJobID),

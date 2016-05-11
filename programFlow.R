@@ -175,8 +175,7 @@ errorCorrectBC <- function(){
   #     command=paste0("python ", codeDir, "/errorCorrectIndices/processGolay.py")
   #)
   
-  bsub(wait=sprintf("ended(BushmanErrorCorrectWorker_%s)", bushmanJobID),
-       jobName=sprintf("BushmanDemultiplex_%s", bushmanJobID),
+  bsub(jobName=sprintf("BushmanDemultiplex_%s", bushmanJobID),
        maxmem=64000, #just in case
        logFile="logs/demultiplexOutput.txt",
        command=paste0("Rscript -e \"source('", codeDir, "/programFlow.R'); demultiplex();\"")

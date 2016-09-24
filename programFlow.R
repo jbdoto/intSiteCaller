@@ -236,23 +236,23 @@ errorCorrectBC <- function(){
     writeFasta(I1[[chunk]], file=paste0("Data/trimmedI1-", chunk, ".fasta"))
   }
  
-  for (i in 1:length(I1))
-  { 
-     runProcess(jobName=sprintf("ErrorCorrectWorker_%s-%s", jobID, i),
-                maxmem=1000,
-                logFile=paste0('logs/errorCorrectWorkerOutput', i, '.txt'),
-                command=paste0(python, ' ', codeDir, "/errorCorrectIndices/processGolay.py ", i))
-  }
+  #for (i in 1:length(I1))
+  #{ 
+  #   runProcess(jobName=sprintf("ErrorCorrectWorker_%s-%s", jobID, i),
+  #              maxmem=1000,
+  #              logFile=paste0('logs/errorCorrectWorkerOutput', i, '.txt'),
+  #              command=paste0(python, ' ', codeDir, "/errorCorrectIndices/processGolay.py ", i))
+  #}
 
   # Wait for all Golay correction jobs to be compelted.
-  for (i in 1:length(I1))
-  {
-    repeat
-    {
-       if (file.exists(paste0("Data/correctedI1-", i,".done"))) break
-       Sys.sleep(1)
-    }
-  }
+  #for (i in 1:length(I1))
+  #{
+  #  repeat
+  #  {
+  #     if (file.exists(paste0("Data/correctedI1-", i,".done"))) break
+  #     Sys.sleep(1)
+  #  }
+  #}
 
   runProcess(jobName=sprintf("Demultiplex_%s", jobID),
              maxmem=50000, 

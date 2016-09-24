@@ -5,10 +5,11 @@
 #' @param min_len length of linker for the case of no N
 #'    (with N minumum linker accepted as valid)
 #' @return linkerCommon, vector of the sequence after N
-linker_common <- function(linkerSequence, min_len=15) {
+linker_common <- function(linkerSequence, min_len=13) {
     stopifnot(require("Biostrings")) # should we test for libraries presence?
     stopifnot(is.character(linkerSequence)) # should we check types of args?
-    splited <- strsplit(linkerSequence, 'N+')
+    #splited <- strsplit(linkerSequence, 'N+')
+    splitted <- list(c(linkerSequence, linkerSequence))
     
     splited.len <- sapply(splited, length)
     stopifnot( all(splited.len == 2 | splited.len == 1))

@@ -140,7 +140,7 @@ PairwiseAlignmentsSingleSubject2DF <- function(PA, shift=0) {
 #' @param ltrbit character string of lenth 1, such as "TCTAGCA"
 #' @return DNAStringSet of reads with primer and ltr removed
 #' 
-trim_Ltr_side_reads <- function(reads.p, primer, ltrbit, maxMisMatch=0) {
+trim_Ltr_side_reads <- function(reads.p, primer, ltrbit, maxMisMatch=2) {
     
     stopifnot(class(reads.p) %in% "DNAStringSet")
     stopifnot(!any(duplicated(names(reads.p))))
@@ -201,10 +201,10 @@ trim_primerIDlinker_side_reads <- function(reads.l, linker, maxMisMatch=3) {
     stopifnot(!any(duplicated(names(reads.l))))
     stopifnot(length(linker)==1)
     
-    pos.N <- unlist(gregexpr("N", linker))
-    len.N <- length(pos.N)
-    link1 <- substr(linker, 1, min(pos.N)-1)
-    link2 <- substr(linker, max(pos.N)+1, nchar(linker))
+    #pos.N <- unlist(gregexpr("N", linker))
+    #len.N <- length(pos.N)
+    #link1 <- substr(linker, 1, min(pos.N)-1)
+    #link2 <- substr(linker, max(pos.N)+1, nchar(linker))
     
     ## allows gap, and del/ins count as 1 mismatch
     submat1 <- nucleotideSubstitutionMatrix(match=1,
@@ -212,36 +212,36 @@ trim_primerIDlinker_side_reads <- function(reads.l, linker, maxMisMatch=3) {
                                             baseOnly=TRUE)
     
     ## search at the beginning for 1st part of linker
-    aln.1 <- pairwiseAlignment(pattern=subseq(reads.l, 1, 2+nchar(link1)),
-                               subject=link1,
+    aln <- pairwiseAlignment(pattern=subseq(reads.l, 1, 2+nchar(link1)),
+                               subject=linker,
                                substitutionMatrix=submat1,
                                gapOpening = 0,
                                gapExtension = 1,
                                type="overlap")
-    aln.1.df <- PairwiseAlignmentsSingleSubject2DF(aln.1)
+    aln.df <- PairwiseAlignmentsSingleSubject2DF(aln)
     
     ## search after 1st part of linker for the 2nd part of linker
-    aln.2 <- pairwiseAlignment(pattern=subseq(reads.l, max(pos.N)-1, nchar(linker)+1),
-                               subject=link2,
-                               substitutionMatrix=submat1,
-                               gapOpening = 0,
-                               gapExtension = 1,
-                               type="overlap")
-    aln.2.df <- PairwiseAlignmentsSingleSubject2DF(aln.2, max(pos.N)-2)
+    #aln.2 <- pairwiseAlignment(pattern=subseq(reads.l, max(pos.N)-1, nchar(linker)+1),
+    #                           subject=link2,
+    #                           substitutionMatrix=submat1,
+    #                           gapOpening = 0,
+    #                           gapExtension = 1,
+    #                           type="overlap")
+    #aln.2.df <- PairwiseAlignmentsSingleSubject2DF(aln.2, max(pos.N)-2)
     
-    goodIdx <- (aln.1.df$score >= nchar(link1)-maxMisMatch &
-                aln.2.df$score >= nchar(link2)-maxMisMatch)
+    goodIdx <- (aln.df$score >= nchar(linker)-maxMisMatch)# &
+    #            aln.2.df$score >= nchar(link2)-maxMisMatch)
     
-    primerID <- subseq(reads.l[goodIdx],
-                       aln.1.df$end[goodIdx]+1,
-                       aln.2.df$start[goodIdx]-1)
+    #primerID <- subseq(reads.l[goodIdx],
+    #                   aln.1.df$end[goodIdx]+1,
+    #                   aln.2.df$start[goodIdx]-1)
     
-    reads.l <- subseq(reads.l[goodIdx], aln.2.df$end[goodIdx]+1)
+    reads.l <- subseq(reads.l[goodIdx], aln.df$end[goodIdx]+1)
     
-    stopifnot(all(names(primerID)==names(reads.l)))
+    #stopifnot(all(names(primerID)==names(reads.l)))
     
-    return(list("reads.l"=reads.l,
-                "primerID"=primerID))
+    return(list("reads.l"=reads.l))#,
+    #            "primerID"=primerID))
 }
 ##trim_primerIDlinker_side_reads(reads.l, linker)
 
@@ -360,15 +360,15 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
   # message("\nFilter and trim primer and ltrbit")
   ## .p suffix signifies the 'primer' side of the amplicon (i.e. read2)
   ## .l suffix indicates the 'liner' side of the amplicon (i.e. read1)
-  reads.p <- trim_Ltr_side_reads(reads[[2]], primer, ltrbit)
+  reads.p <- trim_Ltr_side_reads(reads[[1]], primer, ltrbit)
   stats.bore$LTRed <- length(reads.p)
   
   # message("\nFilter and trim linker")
-  readslprimer <- trim_primerIDlinker_side_reads(reads[[1]], linker)
+  readslprimer <- trim_primerIDlinker_side_reads(reads[[2]], linker)
   reads.l <- readslprimer$reads.l
-  primerIDs <- readslprimer$primerID
+  #primerIDs <- readslprimer$primerID
   stats.bore$linkered <- length(reads.l)
-  save(primerIDs, file="primerIDData.RData")
+  #save(primerIDs, file="primerIDData.RData")
   
   ltrlinkeredQname <- intersect(names(reads.p), names(reads.l))
   reads.p <- reads.p[ltrlinkeredQname]

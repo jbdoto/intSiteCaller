@@ -168,7 +168,7 @@ callIntSites <- function( dataN ){
 }
 
 demultiplex <- function(){
-  I1 <- readFasta(list.files("Data", pattern="correctedI1-.", full.names=T))
+  I1 <- readFasta(list.files("Data", pattern="trimmedI1-.", full.names=T))
   
   completeMetadata <- get(load("completeMetadata.RData"))
   

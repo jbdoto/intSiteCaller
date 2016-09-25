@@ -147,6 +147,9 @@ trim_Ltr_side_reads <- function(reads.p, primer, ltrbit, maxMisMatch=2) {
     stopifnot(length(primer)==1)
     stopifnot(length(ltrbit)==1)
     
+    #Remove phasing sequence (8nt)
+    reads.p <- DNAStringSet(reads.p, start = 9)
+    
     ## allows gap, and del/ins count as 1 mismatch
     submat1 <- nucleotideSubstitutionMatrix(match=1,
                                             mismatch=0,
@@ -212,7 +215,7 @@ trim_primerIDlinker_side_reads <- function(reads.l, linker, maxMisMatch=3) {
                                             baseOnly=TRUE)
     
     ## search at the beginning for 1st part of linker
-    aln <- pairwiseAlignment(pattern=subseq(reads.l, 1, 2+nchar(link1)),
+    aln <- pairwiseAlignment(pattern=subseq(reads.l, 1, 2+nchar(linker)),
                                subject=linker,
                                substitutionMatrix=submat1,
                                gapOpening = 0,
@@ -340,7 +343,7 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
         trimmedqSeqs <- quality(quality(trimmed))
         names(trimmedSeqs) <- names(trimmedqSeqs) <- 
           sapply(sub("(.+) .+","\\1",ShortRead::id(trimmed)),
-                 function(z){paste0(alias, "%", strsplit(z, "-")[[1]][2])})
+                 function(z){paste0(alias, "%", z)})
       }
     }
     list(trimmedSeqs, trimmedqSeqs)

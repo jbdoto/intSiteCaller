@@ -376,7 +376,7 @@ trimReads <- function( dataN ){
   print(t(as.data.frame(completeMetadata)), quote=FALSE)
   
   suppressWarnings(dir.create(alias, recursive=TRUE))
-  
+
   status <- tryCatch(eval(as.call(append(getTrimmedSeqs,
                                          unname(as.list(completeMetadata[c("qualityThreshold", "badQualityBases",
                                                                            "qualitySlidingWindow", "primer", "ltrBit",

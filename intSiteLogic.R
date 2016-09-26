@@ -147,17 +147,16 @@ trim_Ltr_side_reads <- function(reads.p, primer, ltrbit, maxMisMatch=2) {
     stopifnot(length(primer)==1)
     stopifnot(length(ltrbit)==1)
     
-    #Remove phasing sequence (8nt)
-    reads.p <- DNAStringSet(reads.p, start = 9)
-    
     ## allows gap, and del/ins count as 1 mismatch
     submat1 <- nucleotideSubstitutionMatrix(match=1,
                                             mismatch=0,
                                             baseOnly=TRUE)
+    phasing <- 8
+    reads.p <- DNAStringSet(reads.p, start = phasing+1)
     
     ## p for primer
     ## search for primer from the beginning
-    aln.p <- pairwiseAlignment(pattern=subseq(reads.p, 1, 1+nchar(primer)),
+    aln.p <- pairwiseAlignment(pattern=subseq(reads.p, 1, nchar(primer)+1),
                                subject=primer,
                                substitutionMatrix=submat1,
                                gapOpening = 0,
@@ -175,7 +174,7 @@ trim_Ltr_side_reads <- function(reads.p, primer, ltrbit, maxMisMatch=2) {
                                gapOpening = 0,
                                gapExtension = 1,
                                type="overlap")
-    aln.l.df <- PairwiseAlignmentsSingleSubject2DF(aln.l, shift=nchar(primer)-1)
+    aln.l.df <- PairwiseAlignmentsSingleSubject2DF(aln.l, shift=nchar(primer))
     
     goodIdx <- (aln.p.df$score >= nchar(primer)-maxMisMatch &
                 aln.l.df$score >= nchar(ltrbit)-maxMisMatch)
@@ -321,6 +320,12 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
   stats.bore <- data.frame(sample=alias)
   
   reads <- lapply(list(read1, read2), sapply, readFastq)
+
+  ######******** debug **********######
+  if(length(reads) > 0){
+    save(reads, file = "debugReads.RData")
+    save.image("debugOverReadTrim.RData")}
+  ######*************************######
   
   stats.bore$barcoded <- sum(sapply(reads[[1]], length))
   
@@ -341,9 +346,9 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
       if(length(trimmed) > 0){
         trimmedSeqs <- sread(trimmed)
         trimmedqSeqs <- quality(quality(trimmed))
-        names(trimmedSeqs) <- names(trimmedqSeqs) <- 
-          sapply(sub("(.+) .+","\\1",ShortRead::id(trimmed)),
-                 function(z){paste0(alias, "%", z)})
+        names(trimmedSeqs) <- names(trimmedqSeqs) <- sub("(.+) .+","\\1",ShortRead::id(trimmed))
+          #sapply(sub("(.+) .+","\\1",ShortRead::id(trimmed)),
+          #       function(z){paste0(alias, "%", z)})
       }
     }
     list(trimmedSeqs, trimmedqSeqs)
@@ -379,7 +384,7 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
   stats.bore$ltredlinkered <- length(reads.l)
   
   print(t(stats.bore), quote=FALSE) 
-  
+
   ## check if reads were sequenced all the way by checking for opposite adaptor
   # message("\nTrim reads.p over reading into linker")
   reads.p <- trim_overreading(reads.p, linker_common, 3)

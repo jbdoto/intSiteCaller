@@ -199,9 +199,9 @@ trim_Ltr_side_reads <- function(reads.p, primer, ltrbit, maxMisMatch=2) {
 #' 
 trim_primerIDlinker_side_reads <- function(reads.l, linker, maxMisMatch=3) {
     
-    stopifnot(class(reads.l) %in% "DNAStringSet")
-    stopifnot(!any(duplicated(names(reads.l))))
-    stopifnot(length(linker)==1)
+#    stopifnot(class(reads.l) %in% "DNAStringSet")
+#    stopifnot(!any(duplicated(names(reads.l))))
+#    stopifnot(length(linker)==1)
     
     #pos.N <- unlist(gregexpr("N", linker))
     #len.N <- length(pos.N)
@@ -209,18 +209,18 @@ trim_primerIDlinker_side_reads <- function(reads.l, linker, maxMisMatch=3) {
     #link2 <- substr(linker, max(pos.N)+1, nchar(linker))
     
     ## allows gap, and del/ins count as 1 mismatch
-    submat1 <- nucleotideSubstitutionMatrix(match=1,
-                                            mismatch=0,
-                                            baseOnly=TRUE)
+#    submat1 <- nucleotideSubstitutionMatrix(match=1,
+#                                            mismatch=0,
+#                                            baseOnly=TRUE)
     
     ## search at the beginning for 1st part of linker
-    aln <- pairwiseAlignment(pattern=subseq(reads.l, 1, 2+nchar(linker)),
-                               subject=linker,
-                               substitutionMatrix=submat1,
-                               gapOpening = 0,
-                               gapExtension = 1,
-                               type="overlap")
-    aln.df <- PairwiseAlignmentsSingleSubject2DF(aln)
+#    aln <- pairwiseAlignment(pattern=subseq(reads.l, 1, 2+nchar(linker)),
+#                               subject=linker,
+#                               substitutionMatrix=submat1,
+#                               gapOpening = 0,
+#                               gapExtension = 1,
+#                               type="overlap")
+#    aln.df <- PairwiseAlignmentsSingleSubject2DF(aln)
     
     ## search after 1st part of linker for the 2nd part of linker
     #aln.2 <- pairwiseAlignment(pattern=subseq(reads.l, max(pos.N)-1, nchar(linker)+1),
@@ -231,19 +231,20 @@ trim_primerIDlinker_side_reads <- function(reads.l, linker, maxMisMatch=3) {
     #                           type="overlap")
     #aln.2.df <- PairwiseAlignmentsSingleSubject2DF(aln.2, max(pos.N)-2)
     
-    goodIdx <- (aln.df$score >= nchar(linker)-maxMisMatch)# &
+ #   goodIdx <- (aln.df$score >= nchar(linker)-maxMisMatch)# &
     #            aln.2.df$score >= nchar(link2)-maxMisMatch)
     
     #primerID <- subseq(reads.l[goodIdx],
     #                   aln.1.df$end[goodIdx]+1,
     #                   aln.2.df$start[goodIdx]-1)
     
-    reads.l <- subseq(reads.l[goodIdx], aln.df$end[goodIdx]+1)
+ #   reads.l <- subseq(reads.l[goodIdx], aln.df$end[goodIdx]+1)
     
     #stopifnot(all(names(primerID)==names(reads.l)))
     
-    return(list("reads.l"=reads.l))#,
+ #   return(list("reads.l"=reads.l))#,
     #            "primerID"=primerID))
+    return(reads.l)
 }
 ##trim_primerIDlinker_side_reads(reads.l, linker)
 

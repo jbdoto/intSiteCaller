@@ -226,9 +226,18 @@ errorCorrectBC <- function(){
   completeMetadata <- get(load("completeMetadata.RData"))
   jobID <- get(load("jobID.RData"))
 
-  I1 <- readFastq("Data/Undetermined_S0_L001_I1_001.fastq.gz")
-  I1 <- trimTailw(I1, 2, "0", 12)
-  I1 <- I1[width(I1)==max(width(I1))]
+  R1 <- readFastq(config$SequencingFiles$R1)
+  readNames <- id(R1)
+  indexReads <- DNAStringSet(stringr::str_extract(readNames, "[\\w]+$"))
+  names(indexReads) <- readNames
+  Biostrings::writeXStringSet(
+    indexReads,
+    file = "Data/extracted_I1.fasta.gz",
+    compress = TRUE)
+  I1 <- indexReads
+  #I1 <- readFastq("Data/Undetermined_S0_L001_I1_001.fastq.gz")
+  #I1 <- trimTailw(I1, 2, "0", 12)
+  I1 <- I1[width(I1)==max(nchar(completeMetadata$barcode))]
   I1 <- split(I1, ceiling(seq_along(I1)/500000))
 
   for(chunk in names(I1))

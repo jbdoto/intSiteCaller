@@ -19,7 +19,7 @@
 libs <- c("plyr", "BiocParallel", "Biostrings", "GenomicAlignments" ,
           "hiAnnotator" ,"sonicLength", "GenomicRanges", "BiocGenerics",
           "ShortRead", "GenomicRanges", "igraph", "data.table")
-null <- suppressMessages(sapply(libs, library, character.only=TRUE))
+null <- suppressMessages(sapply(libs, require, character.only=TRUE))
 
 codeDir <- get(load("codeDir.RData"))
 
@@ -206,7 +206,7 @@ trim_leading <- function(seqs, trimSequence, phasing = 0L, maxMisMatch = 1L,
       end = end(tSegRanges[i]) + 1)
     aln <- unlist(vmatchPattern(
       tSeq, alnSeqs, max.mismatch = misMatch, fixed = FALSE))
-    shift(
+    IRanges::shift(
       aln,
       shift = ifelse(
         start(tSegRanges[i]) == 1L, 0L, start(tSegRanges[i]) - 2))
@@ -330,7 +330,7 @@ trim_overreading <- function(seqs, trimSequence,
 # Comments?
 getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow,
                            primer, ltrbit, linker_common, mingDNA, read1,
-                           read2, alias, vectorSeq){
+                           read2, alias, vectorSeq, trimPctIdent){
 
   ##### Load libraries #####
   ##library("hiReadsProcessor")
@@ -345,12 +345,6 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow,
   stats.bore <- data.frame(sample=alias)
 
   reads <- lapply(list(read1, read2), sapply, readFastq)
-
-  ######******** debug **********######
-  if(length(reads) > 0){
-    save(reads, file = "debugReads.RData")
-    save.image("debugOverReadTrim.RData")}
-  ######*************************######
 
   stats.bore$barcoded <- sum(sapply(reads[[1]], length))
 
@@ -398,10 +392,11 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow,
     seqs = reads[[1]],
     trimSequence = paste0(primer, ltrbit),
     phasing = 8L,
-    maxMisMatch = trimPctIdent * nchar(paste0(primer, ltrbit)) / 100)
+    maxMisMatch = (100-as.numeric(trimPctIdent)) * 
+      nchar(paste0(primer, ltrbit)) / 100)
 
   stats.bore$LTRed <- length(reads.p)
-
+ 
   # message("\nFilter and trim linker")
   ## trim linker leading sequences
   #readslprimer <- trim_leading(
@@ -423,25 +418,28 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow,
 
   ## check if reads were sequenced all the way by checking for opposite adaptor
   # message("\nTrim reads.p over reading into linker")
+  rc.linker_common <- as.character(
+    reverseComplement(DNAStringSet(linker_common)))
   reads.p <- trim_overreading(
     seqs = reads.p,
-    trimSequence = reverseComplement(DNAStringSet(linker_common)),
-    percentID = trimPctIdent,
+    trimSequence = rc.linker_common,
+    percentID = as.numeric(trimPctIdent)/100,
     maxSeqLength = 20L)
 
   # message("\nTrim reads.l over reading into ltr")
   ## with mismatch=3, the 20 bases can not be found in human genome
   largeLTRFrag <- as.character(
     reverseComplement(DNAStringSet(paste0(primer, ltrbit))))
+
   reads.l <- trim_overreading(
     seqs = reads.l,
     trimSequence = largeLTRFrag,
-    percentID = trimPctIdent,
+    percentID = as.numeric(trimPctIdent)/100,
     maxSeqLength = 20L)
 
   # message("\nFilter on minimum length of ", mingDNA)
-  reads.p <- subset(reads.p, width(reads.p) > mingDNA)
-  reads.l <- subset(reads.l, width(reads.l) > mingDNA)
+  reads.p <- reads.p[width(reads.p) > mingDNA]
+  reads.l <- reads.l[width(reads.l) > mingDNA]
 
   ltredQname <- intersect(names(reads.p), names(reads.l))
   reads.p <- reads.p[ltredQname]
@@ -765,7 +763,7 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   names(uniq.reads) <- as.character(uniq.keys$names)
   uniq.reads$sampleName <- sapply(
     strsplit(as.character(uniq.keys$names), "%"), "[[", 1)
-  uniq.reads$ID <- sapply(strsplit(as.character(uniq.keys$names), "%"), "[[", 2)
+  uniq.reads$ID <- as.character(uniq.keys$names)
 
   allSites <- uniq.reads
   save(allSites, file="allSites.RData")

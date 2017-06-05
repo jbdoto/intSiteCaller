@@ -237,12 +237,14 @@ errorCorrectBC <- function(){
   I1 <- indexReads
   #I1 <- readFastq("Data/Undetermined_S0_L001_I1_001.fastq.gz")
   #I1 <- trimTailw(I1, 2, "0", 12)
-  I1 <- I1[width(I1)==max(nchar(completeMetadata$barcode))]
+  I1 <- I1[width(I1)==max(sapply(completeMetadata$bcSeq, nchar))]
   I1 <- split(I1, ceiling(seq_along(I1)/500000))
 
   for(chunk in names(I1))
   {
-    writeFasta(I1[[chunk]], file=paste0("Data/trimmedI1-", chunk, ".fasta"))
+    Biostrings::writeXStringSet(
+        I1[[chunk]], 
+        file = paste0("Data/trimmedI1-", chunk, ".fasta"))
   }
 
   #for (i in 1:length(I1))

@@ -104,213 +104,233 @@ findVectorReads <- function(vectorSeq, primerLTR="GAAAATCTCTAGCA",
 
 #' as tittled make PairwiseAlignmentsSingleSubject easily accessable
 #' as needed by other functions
-PairwiseAlignmentsSingleSubject2DF <- function(PA, shift=0) {
-  stopifnot("PairwiseAlignmentsSingleSubject"  %in% class(PA))
-
-  return(data.frame(
-    width=width(pattern(PA)),
-    score=score(PA),
-    mismatch=width(pattern(PA))-score(PA),
-    start=start(pattern(PA))+shift,
-    end=end(pattern(PA))+shift
-  ))
-}
-
-
-#' subset and substring
-#' trim primer and ltrbit off of ltr side of read, R2 in protocol
-#' both primer and ltrbit are required, otherwise disgard it
-#' allow 2 mismatch for either primer or ltrbit
-#' runSeq <- sapply(1:10000, function(i)
-#'                  paste(sample(c("A","C","G","T"), 8, replace=TRUE),
-#'                        collapse=""))
-#' runSeq.p <- pairwiseAlignment(pattern=runSeq,
-#'                               subject=primer,
-#'                               substitutionMatrix=submat1,
-#'                               gapOpening = 0,
-#'                               gapExtension = 1,
-#'                               type="overlap")
-#' runSeq.p.df <- PairwiseAlignmentsSingleSubject2DF(runSeq.p)
-#' table(runSeq.p.df$score)
-#'   1    2    3    4    5    6    7
-#' 211 3338 4330 1751  344   25    1
-#' false positive rate 0.0025 and thus maxMisMatch=2,
-#' (1/4)^(7-maxMisMatch)*choose(7-maxMisMatch) as expected
-#' false positive rate combining both primer and ltr is 0.0025*0.0025=6.25E-6
-#' @param reads.p DNAStringSet of reads, normally R2
-#' @param primer character string of lenth 1, such as "GAAAATC"
-#' @param ltrbit character string of lenth 1, such as "TCTAGCA"
-#' @return DNAStringSet of reads with primer and ltr removed
-#' 
-trim_Ltr_side_reads <- function(reads.p, primer, ltrbit,
-                                phasing = 8L, maxMisMatch = 0) {
-
-  stopifnot(class(reads.p) %in% "DNAStringSet")
-  stopifnot(!any(duplicated(names(reads.p))))
-  stopifnot(length(primer)==1)
-  stopifnot(length(ltrbit)==1)
-
-  ## allows gap, and del/ins count as 1 mismatch
-  submat1 <- nucleotideSubstitutionMatrix(match=1,
-                                          mismatch=0,
-                                          baseOnly=TRUE)
-
-  ## phasing is a common practice to increase cluster diveristy during sequencing
-  ## This practice adds random nucleoties at the beginning of the read that needed
-  ## to be trimmed off prior to ltr trimming
-  reads.p <- DNAStringSet(reads.p, start = phasing+1)
-
-  ## p for primer
-  ## search for primer from the beginning
-  aln.p <- pairwiseAlignment(pattern=subseq(reads.p, 1, 1+nchar(primer)),
-                             subject=primer,
-                             substitutionMatrix=submat1,
-                             gapOpening = 0,
-                             gapExtension = 1,
-                             type="overlap")
-  aln.p.df <- PairwiseAlignmentsSingleSubject2DF(aln.p)
-
-  ## l for ltrbit
-  ## search for ltrbit fellowing primer
-  ## note, for SCID trial, there are GGG between primer and ltr bit and hence 5
-  ## for extra bases
-  aln.l <- pairwiseAlignment(pattern=subseq(reads.p, nchar(primer)+1, nchar(primer)+nchar(ltrbit)+1),
-                             subject=ltrbit,
-                             substitutionMatrix=submat1,
-                             gapOpening = 0,
-                             gapExtension = 1,
-                             type="overlap")
-  aln.l.df <- PairwiseAlignmentsSingleSubject2DF(aln.l, shift=nchar(primer))
-
-  goodIdx <- (aln.p.df$score >= nchar(primer)-maxMisMatch &
-                aln.l.df$score >= nchar(ltrbit)-maxMisMatch)
-
-  reads.p <- subseq(reads.p[goodIdx], aln.l.df$end[goodIdx]+1)
-
-  return(reads.p)
-}
-##trim_Ltr_side_reads(reads.p, primer, ltrbit)
+#PairwiseAlignmentsSingleSubject2DF <- function(PA, shift=0) {
+#  stopifnot("PairwiseAlignmentsSingleSubject"  %in% class(PA))
+#
+#  return(data.frame(
+#    width=width(pattern(PA)),
+#    score=score(PA),
+#    mismatch=width(pattern(PA))-score(PA),
+#    start=start(pattern(PA))+shift,
+#    end=end(pattern(PA))+shift
+#  ))
+#}
 
 
-#' subset and substring
-#' trim primerID linker side of read, R1 in protocol
-#' a primerIDlinker has N's in the middle
-#' allow 3 mismatches for either part before and after Ns
-#' see reasonning above
-#' @param reads.l DNAStringSet of reads, normally R1
-#' @param linker character string of lenth 1, such as
-#'               "AGCAGGTCCGAAATTCTCGGNNNNNNNNNNNNCTCCGCTTAAGGGACT"
-#' @param maxMisMatch=3
-#' @return list of read.l and primerID
+#' Trim beginning or leading ends of nucleotide sequences
 #'
-trim_primerIDlinker_side_reads <- function(reads.l, linker, maxMisMatch=3) {
-  stopifnot(class(reads.l) %in% "DNAStringSet")
-  stopifnot(!any(duplicated(names(reads.l))))
-  stopifnot(length(linker)==1)
+#' @param seqs DNAStringSet of reads or unique sequences
+#' @param trimSequence character string of lenth 1, such as "GAAAATC". This
+#' string will be used to match to the beginning of sequences, upon which
+#' non-matching sequences will be discarded and the matching portion will be
+#' trimmed from the leading side of the sequence. Ambiguous nucleotides within
+#' the sequence will be used to determine random sequences and can be used for
+#' alignment or collecting random nucleotide sequences embedded within the
+#' trimSequence structure.
+#' @param phasing integer/numeric value, denoting the number of nucleotides used
+#' for phasing while sequencing. This number of nucleotides will be removed from
+#' the beginning of the sequence before any alignment.
+#' @param maxMisMatch integer/numeric value or vector. Values indicate the
+#' number of mismatches allowed within the DNA segment. Vectors must be equal in
+#' length to the number of non-ambiguous segments within the trimSequence. If no
+#' ambiguous segments are present in trimSequence or ignoreAmbiguousNts is TRUE,
+#' vectors for maxMisMatch will be summed to determine the maximum allowable
+#' mismatch over the entire string.
+#' @param collectRandomID logical should random / ambiguous protions of the
+#' trimSequence be collected? They will be returned as a listed DNAStringSet
+#' under 'randomSequences' in order from left to right of appearance within
+#' trimSequence.
+#' @param ignoreAmbiguousNts logical To ignore ambiguous nucleotides within the
+#' trimSequence string. If theses nucleotides are ignored, then randomIDs cannot
+#' currently be collected. Rather, adjust maxMisMatch to obtain a suitable
+#' alignment for non-ambiguous segments.
+#' @return DNAStringSet of sequences with trimSequence removed or a listed
+#' object with the first postion being the DNAStringSet of trimmed sequences and
+#' the second being the random sequences collected during trimming.
+#' @author Christopher Nobles, Ph.D.
 
-  pos.N <- unlist(gregexpr("N", linker))
-  len.N <- length(pos.N)
-  link1 <- substr(linker, 1, min(pos.N)-1)
-  link2 <- substr(linker, max(pos.N)+1, nchar(linker))
-
-  ## allows gap, and del/ins count as 1 mismatch
-  submat1 <- nucleotideSubstitutionMatrix(match=1,
-                                          mismatch=0,
-                                          baseOnly=TRUE)
-
-  ## search at the beginning for 1st part of linker
-  aln.1 <- pairwiseAlignment(pattern=subseq(reads.l, 1, 2+nchar(link1)),
-                             subject=link1,
-                             substitutionMatrix=submat1,
-                             gapOpening = 0,
-                             gapExtension = 1,
-                             type="overlap")
-  aln.1.df <- PairwiseAlignmentsSingleSubject2DF(aln.1)
-
-  ## search after 1st part of linker for the 2nd part of linker
-  aln.2 <- pairwiseAlignment(pattern=subseq(reads.l, max(pos.N)-1, nchar(linker)+1),
-                             subject=link2,
-                             substitutionMatrix=submat1,
-                             gapOpening = 0,
-                             gapExtension = 1,
-                             type="overlap")
-  aln.2.df <- PairwiseAlignmentsSingleSubject2DF(aln.2, max(pos.N)-2)
-
-  goodIdx <- (aln.1.df$score >= nchar(link1)-maxMisMatch &
-                aln.2.df$score >= nchar(link2)-maxMisMatch)
-
-  primerID <- subseq(reads.l[goodIdx],
-                     aln.1.df$end[goodIdx]+1,
-                     aln.2.df$start[goodIdx]-1)
-
-  reads.l <- subseq(reads.l[goodIdx], aln.2.df$end[goodIdx]+1)
-
-  stopifnot(all(names(primerID)==names(reads.l)))
-
-  return(list("reads.l"=reads.l,
-              "primerID"=primerID))
-}
-##trim_primerIDlinker_side_reads(reads.l, linker)
-
-
-#' subseqing, trim off reads from where marker start to match
-#' when human part of sequence is short, ltr side read will read in to
-#' linker, and linker side reads may read into ltrbit, primer, etc
-#' allow 1 mismatch for linker common
-#' @param reads DNAStringSet of reads
-#' @param marker over reading marker
-#' @return DNAStringSet of reads with linker sequences removed
-#'
-trim_overreading <- function(reads, marker, maxMisMatch=3) {
-
-  stopifnot(class(reads) %in% "DNAStringSet")
-  stopifnot(!any(duplicated(names(reads))))
-  stopifnot(length(marker)==1)
-
-
-  submat1 <- nucleotideSubstitutionMatrix(match=1,
-                                          mismatch=0,
-                                          baseOnly=TRUE)
-
-  ## allows gap, and del/ins count as 1 mismatch
-  tmp <- pairwiseAlignment(pattern=reads,
-                           subject=marker,
-                           substitutionMatrix=submat1,
-                           gapOpening = 0,
-                           gapExtension = 1,
-                           type="overlap")
-
-  odf <- PairwiseAlignmentsSingleSubject2DF(tmp)
-
-  odf$isgood <- FALSE
-  ## overlap in the middle or at right
-  odf$isgood <- with(odf, ifelse(mismatch<=maxMisMatch &
-                                   start>1,
-                                 TRUE, isgood))
-
-  ## overlap at left
-  odf$isgood <- with(odf, ifelse(mismatch<=maxMisMatch &
-                                   start==1 &
-                                   width>=nchar(marker)-1,
-                                 TRUE, isgood))
-
-  ## note with ovelrap alignmment, it only align with a minimum of 1/2 of the shorter one
-  odf$cut <- with(odf, ifelse(isgood, odf$start-1, nchar(reads)))
-  if( any(odf$cut < nchar(reads)) ) {
-    odf$cut <- nchar(reads)-nchar(marker)/2
-    odf$cut <- with(odf, ifelse(isgood, odf$start-1, cut))
+trim_leading <- function(seqs, trimSequence, phasing = 0L, maxMisMatch = 1L,
+                         collectRandomID = FALSE, ignoreAmbiguousNts = FALSE){
+  require(BiocGenerics)
+  require(Biostrings)
+  stopifnot(class(seqs) %in% "DNAStringSet")
+  stopifnot(!is.null(names(seqs)))
+  if(ignoreAmbiguousNts & collectRandomID){
+    message("\nCurrently this function cannot collect random IDs
+            if it ignores ambiguous nucleotides.
+            Switching collectRandomID to FALSE.")
+    collectRandomID <- FALSE
+  }
+  if(length(maxMisMatch) > 1 & ignoreAmbiguousNts){
+    message("\nSum of maxMisMatch is being used for maxMisMatch since
+            ignoreAmbiguousNts is being chosen.")
+    maxMisMatch <- sum(maxMisMatch)
   }
 
-  reads <- subseq(reads, 1, odf$cut)
+  # Phasing will ignore the first number of nucleotides of the sequence
+  seqs <- Biostrings::DNAStringSet(
+    seqs,
+    start = 1L + phasing)
+
+  # Determine the structure of random sequences within the trimSequence
+  if(!ignoreAmbiguousNts){
+    trimSegments <- unlist(strsplit(trimSequence, "[N]+"))
+    tSegRanges <- sapply(trimSegments, vmatchPattern, subject = trimSequence)
+    tSegRanges <- IRanges(
+      start = sapply(tSegRanges, function(x) as.integer(IRanges::start(x))),
+      end = sapply(tSegRanges, function(x) as.integer(IRanges::end(x))),
+      names = names(tSegRanges))
+  }else{
+    trimSegments <- trimSequence
+    tSegRanges <- unlist(vmatchPattern(trimSegments, trimSequence))
+    names(tSegRanges) <- trimSegments
+  }
+  # Set allowable mismatches for each range
+  if(length(maxMisMatch) == 1 | ignoreAmbiguousNts){
+    tSegRanges@metadata$misMatch <- rep(maxMisMatch, length(tSegRanges))
+  }else if(length(maxMisMatch) == length(tSegRanges) & is.numeric(maxMisMatch)){
+    tSegRanges@metadata$misMatch <- maxMisMatch
+  }else{
+    stop("\nThe variable maxMisMatch needs to be either a
+         single integer or integer vector of length equal
+         to fixed fragments within the trimSequence.")
+  }
+
+  # Serially align the segment(s) from trimSequence to seqs
+  aln <- do.call(c, lapply(1:length(tSegRanges), function(i, tSegRanges, seqs){
+    tSeq <- names(tSegRanges[i])
+    misMatch <- tSegRanges@metadata$misMatch[i]
+    alnSeqs <- DNAStringSet(
+      seqs,
+      start = ifelse(start(tSegRanges[i]) == 1L, 1, start(tSegRanges[i]) - 1),
+      end = end(tSegRanges[i]) + 1)
+    aln <- unlist(vmatchPattern(
+      tSeq, alnSeqs, max.mismatch = misMatch, fixed = FALSE))
+    shift(
+      aln,
+      shift = ifelse(
+        start(tSegRanges[i]) == 1L, 0L, start(tSegRanges[i]) - 2))
+  },
+  tSegRanges = tSegRanges,
+  seqs = seqs))
+
+  # Identify and select only sequences that have all required alignments
+  seqCount <- table(names(aln))
+  if(any(seqCount > length(trimSegments))){
+    stop("\nAlignment too permissive. Ambiguous mapping of sequences.
+         Please adjust maxMisMatch criteria.")
+  }
+  matchedSeqs <- seqs[names(seqCount[seqCount == length(tSegRanges)])]
+  aln <- aln[names(aln) %in% names(seqCount[seqCount == length(tSegRanges)])]
+  matchedRanges <- split(aln, names(aln))
+  trimRanges <- unlist(reduce(matchedRanges, min.gapwidth = nchar(trimSequence)))
+
+  # Trim sequences with the trimSequence alignment position(s)
+  trimmedSeqs <- DNAStringSet(
+    matchedSeqs[names(trimRanges)],
+    start = end(trimRanges) + 1)
+
+  if(!collectRandomID | !grepl("N", trimSequence)){
+    return(trimmedSeqs)
+  }else{
+    gapRanges <- gaps(matchedRanges)
+    randomSeqs <- lapply(
+      1:(length(trimSegments) - 1), function(i, gapRanges, matchedSeqs){
+        starts <- sapply(1:length(gapRanges), function(j) start(gapRanges[[j]][i]))
+        ends <- sapply(1:length(gapRanges), function(j) end(gapRanges[[j]][i]))
+        DNAStringSet(
+          matchedSeqs[names(gapRanges)],
+          start = starts,
+          end = ends)
+      },
+      gapRanges = gapRanges,
+      matchedSeqs = matchedSeqs)
+    return(list(
+      "trimmedSequences" = trimmedSeqs,
+      "randomSequences" = randomSeqs))
+  }
 }
-##trim_overreading(reads.p, linker_common)
-##trim_overreading(reads.l, largeLTRFrag)
 
+#' Trim 3' ends of sequences when the sequence has overread into
+#' synthetic sequence
+#' \code{trim_overreading} removes 3' ends of nucleotide sequences completely or
+#' partially matching the trimSequence.
+#' @param seqs DNAStringSet of reads or unique sequences
+#' @param trimSequence character string of lenth 1, such as "GAAAATC". This
+#' string will be used to match the end of sequences, upon which the matching
+#' portion will be trimmed from the start of the match to the end of the
+#' sequence. Ambiguous nucleotides within the sequence can be used for alignment,
+#' but matching sequences are not recored.
+#' @param percentID numeric between 0 and 1.0 denoting the minimum percent
+#' identity acceptable for an matching alignment.
+#' @param maxSeqLength numeric/integer the maximum length to consider of the
+#' trimSequence to use for alignments. Using the full length of sequence
+#' avaliable for matching can many times be computationally intensive and
+#' unnessesarily time consuming. Further, identical results can be obtained
+#' using only a portion of the sequence. For example, setting the maxSeqLength
+#' to 15L will only use the first 15 nucleotides of the trimSequence.
+#' @author Christopher Nobles, Ph.D.
 
+trim_overreading <- function(seqs, trimSequence,
+                             percentID, maxSeqLength = NULL){
+  require(IRanges)
+  require(GenomicRanges)
+  require(Biostrings)
 
-getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
-                           ltrbit, largeLTRFrag, linker, linker_common, mingDNA,
-                           read1, read2, alias, vectorSeq){
+  if(is.null(names(seqs))){
+    noNames <- TRUE
+    names(seqs) <- as.character(1:length(seqs))
+  }else{
+    noNames <- FALSE
+  }
+
+  if(!is.null(maxSeqLength)){
+    trimSequence <- Biostrings::DNAStringSet(
+      trimSequence, start = 1L, end = maxSeqLength)
+  }
+
+  trimSeqs <- sapply(0:(nchar(trimSequence)-1), function(i){
+    substr(trimSequence, 1, nchar(trimSequence) - i)
+  })
+
+  alignments <- do.call(
+    rbind,
+    lapply(trimSeqs, function(trimSeq, seqs, percentID){
+      mismatch <- round( nchar(trimSeq) - percentID*nchar(trimSeq) )
+      vmp <- Biostrings::vmatchPattern(
+        trimSeq, seqs, max.mismatch = mismatch, fixed = FALSE)
+      IRanges::as.data.frame(unlist(vmp))
+    }, seqs = seqs, percentID = percentID))
+
+  alignments$seqLength <- width(seqs)[
+    match(alignments$names, names(seqs))]
+  alignments <- alignments[
+    alignments$width == nchar(trimSequence) |
+      alignments$end == alignments$seqLength,]
+
+  alnRanges <- GenomicRanges::reduce(GenomicRanges::GRanges(
+    seqnames = alignments$names,
+    ranges = IRanges::IRanges(
+      start = alignments$start,
+      end = alignments$seqLength),
+    strand = rep("*", nrow(alignments))),
+    ignore.strand = TRUE)
+
+  trimmedSeqs <- Biostrings::DNAStringSet(
+    seqs[GenomicRanges::seqnames(alnRanges)],
+    start = 1L,
+    end = GenomicRanges::start(alnRanges)-1)
+
+  allSeqs <- c(trimmedSeqs, seqs[!names(seqs) %in% names(trimmedSeqs)])
+  allSeqs <- allSeqs[names(seqs)]
+  if(noNames) names(allSeqs) <- NULL
+  return(allSeqs)
+}
+
+# Comments?
+getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow,
+                           primer, ltrbit, linker_common, mingDNA, read1,
+                           read2, alias, vectorSeq){
 
   ##### Load libraries #####
   ##library("hiReadsProcessor")
@@ -373,37 +393,59 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
   # message("\nFilter and trim primer and ltrbit")
   ## .p suffix signifies the 'primer' side of the amplicon (i.e. read2)
   ## .l suffix indicates the 'liner' side of the amplicon (i.e. read1)
-  reads.p <- trim_Ltr_side_reads(reads[[1]], primer, ltrbit)
+  ## trim ltr leading sequence
+  reads.p <- trim_leading(
+    seqs = reads[[1]],
+    trimSequence = paste0(primer, ltrbit),
+    phasing = 8L,
+    maxMisMatch = trimPctIdent * nchar(paste0(primer, ltrbit)) / 100)
+
   stats.bore$LTRed <- length(reads.p)
 
   # message("\nFilter and trim linker")
-  readslprimer <- trim_primerIDlinker_side_reads(reads[[2]], linker)
-  reads.l <- readslprimer$reads.l
+  ## trim linker leading sequences
+  #readslprimer <- trim_leading(
+  #  seqs = reads[[2]],
+  #  trimSequence = linker,
+  #  maxMisMatch = trimPctIdent * nchar(linker) / 100)
+
+  reads.l <- reads[[2]] #readslprimer$reads.l
   #primerIDs <- readslprimer$primerID
-  stats.bore$linkered <- length(reads.l)
+  #stats.bore$linkered <- length(reads.l)
   #save(primerIDs, file="primerIDData.RData")
 
-  ltrlinkeredQname <- intersect(names(reads.p), names(reads.l))
-  reads.p <- reads.p[ltrlinkeredQname]
-  reads.l <- reads.l[ltrlinkeredQname]
-  stats.bore$ltredlinkered <- length(reads.l)
+  ltredQname <- intersect(names(reads.p), names(reads.l))
+  reads.p <- reads.p[ltredQname]
+  reads.l <- reads.l[ltredQname]
+  #stats.bore$ltredlinkered <- length(reads.l)
 
   print(t(stats.bore), quote=FALSE)
 
   ## check if reads were sequenced all the way by checking for opposite adaptor
   # message("\nTrim reads.p over reading into linker")
-  reads.p <- trim_overreading(reads.p, linker_common, 3)
+  reads.p <- trim_overreading(
+    seqs = reads.p,
+    trimSequence = reverseComplement(DNAStringSet(linker_common)),
+    percentID = trimPctIdent,
+    maxSeqLength = 20L)
+
   # message("\nTrim reads.l over reading into ltr")
   ## with mismatch=3, the 20 bases can not be found in human genome
-  reads.l <- trim_overreading(reads.l, substr(largeLTRFrag, 1, 20), 3)
+  largeLTRFrag <- as.character(
+    reverseComplement(DNAStringSet(paste0(primer, ltrbit))))
+  reads.l <- trim_overreading(
+    seqs = reads.l,
+    trimSequence = largeLTRFrag,
+    percentID = trimPctIdent,
+    maxSeqLength = 20L)
 
   # message("\nFilter on minimum length of ", mingDNA)
   reads.p <- subset(reads.p, width(reads.p) > mingDNA)
   reads.l <- subset(reads.l, width(reads.l) > mingDNA)
 
-  ltrlinkeredQname <- intersect(names(reads.p), names(reads.l))
-  reads.p <- reads.p[ltrlinkeredQname]
-  reads.l <- reads.l[ltrlinkeredQname]
+  ltredQname <- intersect(names(reads.p), names(reads.l))
+  reads.p <- reads.p[ltredQname]
+  reads.l <- reads.l[ltredQname]
   stats.bore$lenTrim <- length(reads.p)
 
   # message("\nRemove reads align to vector")
@@ -431,15 +473,15 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
   names(reads.p.u) <- seq_along(reads.p.u)
   names(reads.l.u) <- seq_along(reads.l.u)
 
-  keys <- data.frame("R2"=match(reads.p, reads.p.u),
-                     "R1"=match(reads.l, reads.l.u),
+  keys <- data.frame("R1"=match(reads.p, reads.p.u),
+                     "R2"=match(reads.l, reads.l.u),
                      "names"=toload)
   keys$readPairKey <- paste0(keys$R1, "_", keys$R2)
 
   save(keys, file="keys.RData")
 
-  stats.bore$lLen <- as.integer(mean(width(reads.l)))
-  stats.bore$pLen <- as.integer(mean(width(reads.p)))
+#  stats.bore$lLen <- as.integer(mean(width(reads.l)))
+#  stats.bore$pLen <- as.integer(mean(width(reads.p)))
 
   stats <- rbind(stats, stats.bore)
 
@@ -450,14 +492,14 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
     chunks.p <- split(seq_along(reads.p.u), ceiling(seq_along(reads.p.u)/config$chunkSize))
     for(i in c(1:length(chunks.p))){
       writeXStringSet(reads.p.u[chunks.p[[i]]],
-                      file=paste0("R2-", i, ".fa"),
+                      file=paste0("R1-", i, ".fa"),
                       append=FALSE)
     }
 
     chunks.l <- split(seq_along(reads.l.u), ceiling(seq_along(reads.l.u)/config$chunkSize))
     for(i in c(1:length(chunks.l))){
       writeXStringSet(reads.l.u[chunks.l[[i]]],
-                      file=paste0("R1-", i, ".fa"),
+                      file=paste0("R2-", i, ".fa"),
                       append=FALSE)
     }
 
@@ -468,6 +510,7 @@ getTrimmedSeqs <- function(qualityThreshold, badQuality, qualityWindow, primer,
   }
 }
 
+# Comments?
 processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
                               maxLength, refGenome){
 
@@ -586,10 +629,10 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   R2.loci.strand <- strand(R2.loci)
 
   keep.loci <- ifelse(
-      R2.loci.strand == "+",
-      as.vector(R1.loci.starts > R2.loci.starts &
-                  R1.loci.strand != R2.loci.strand),
+      R1.loci.strand == "+",
       as.vector(R1.loci.starts < R2.loci.starts &
+                  R1.loci.strand != R2.loci.strand),
+      as.vector(R1.loci.starts > R2.loci.starts &
                   R1.loci.strand != R2.loci.strand))
 
   keep.loci <- as.vector(
@@ -630,11 +673,11 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   #' direction of sequencing from the viral or vector genome is from the U5-host
   #' junction found at the 3' end of the integrated element.
   paired.loci <- GRanges(
-    seqnames = seqnames(R2.loci),
+    seqnames = seqnames(R1.loci),
     ranges = IRanges(
-      start = ifelse(strand(R2.loci) == "+", start(R2.loci), start(R1.loci)),
-      end = ifelse(strand(R2.loci) == "+", end(R1.loci), end(R2.loci))),
-    strand = strand(R2.loci),
+      start = ifelse(strand(R1.loci) == "+", start(R1.loci), start(R2.loci)),
+      end = ifelse(strand(R1.loci) == "+", end(R2.loci), end(R1.loci))),
+    strand = strand(R1.loci),
     lociPairKey = loci.key$lociPairKey)
 
   paired.loci$readPairKeys <- CharacterList(lapply(
@@ -689,7 +732,7 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
     R2 <- hits.R2[hits.R2$qName == chimera.reads[i, "R2"]]
     names(R1) <- rep(chimera.reads[i, "names"], length(R1))
     names(R2) <- rep(chimera.reads[i, "names"], length(R2))
-    c(R2, R1)
+    c(R1, R2)
   }))
 
   chimeraData <- list(

@@ -20,14 +20,14 @@
 #' @param processing_param_file the same parameters for all samples
 #' @param sample_info_file information about sample and techincal DNA used.
 #' @return df with cols:
-#'  alias, primer, ltrBit, largeLTRFrag, linkerSequence, 
+#'  alias, primer, ltrBit, largeLTRFrag, linkerSequence,
 #'  linkerCommon, bcSeq, vectorSeq, gender
 #'  qualityThreshold, badQualityBases, qualitySlidingWindow,
 #'  maxAlignStart, maxFragLength, minPctIdent, mingDNA
 read_sample_processing_files <- function(sample_info_path, processing_info_path) {
     .check_input(sample_info_path, processing_info_path)
     sampleInfo <- read.delim(sample_info_path, stringsAsFactors=F)
-    sampleInfo$linkerCommon <- linker_common(sampleInfo$linkerSequence)
+    #sampleInfo$linkerCommon <- linker_common(sampleInfo$linkerSequence)
     processingParams <- read.delim(processing_info_path, stringsAsFactors=F)
     complete_meta <- cbind(sampleInfo, processingParams)
     .check_column_names(complete_meta)
@@ -40,10 +40,10 @@ read_sample_processing_files <- function(sample_info_path, processing_info_path)
     stopifnot(file.exists(sample_info_path) & file.exists(processing_info_path))
 }
 
-.columns_sample_proc <- c( "qualityThreshold", "badQualityBases", "qualitySlidingWindow",
-    "primer", "ltrBit", "largeLTRFrag", "linkerSequence", "linkerCommon",
-    "mingDNA", "alias", "vectorSeq", "minPctIdent",
-    "maxAlignStart", "maxFragLength", "gender", "bcSeq", "refGenome"
+.columns_sample_proc <- c(
+  "qualityThreshold", "badQualityBases", "qualitySlidingWindow", "primer",
+  "ltrBit", "linkerCommon", "mingDNA", "alias", "vectorSeq", "minPctIdent",
+  "trimPctIdent", "maxAlignStart", "maxFragLength", "gender", "bcSeq", "refGenome"
 )
 
 .check_column_names <- function(samples) {

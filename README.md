@@ -12,7 +12,7 @@ HPC](http://www.med.upenn.edu/hpc/hardware-physical-environment.html)
 
 
 ## Inputs
-                                    
+
 Analysis is started by having the user create the following directory structure:
 
 ```
@@ -24,22 +24,23 @@ primaryAnalysisDirectory
 ├── processingParams.tsv
 ├── sampleInfo.tsv
 └── vector.fasta
-``` 
+```
 ###### Primary Analysis Directory
 
 * `Data/Undetermined_S0_L001_*_001.fastq.gz` are the fastq files returned by the MiSeq (R1, R2, and I1)
 At present names are hard-coded and * can only be `I1`, `R1` and `R2`
-    
+
 * Optional `processingParams.tsv` contains 'dryside' processing parameters, all the same for all samples:
-	* `qualityThreshold`
+	* `qualityThreshold` (Default: Q30) minimum quality to trim for `badQualityBases` consecutive nucleotides within a `qualitySlidingWindow` nt sliding window
 	* `badQualityBases`
 	* `qualitySlidingWindow`
+  * `trimPctIdent` percent identity for matching trim sequences
 	* `mingDNA` is the minimum length of genomic DNA (in nt) that is allowed to be passed onto the alignment step
 	* `minPctIdent` is the minimum percent identity that a query sequence has to a putative alignment on the target sequence in order to be considered 'valid'
 	* `maxAlignStart` is the maximum number of nucleotides of the query sequence that do *not* match the putative target sequence before a matched nucleotide is seen
 	* `maxFragLength` is the maximum length of a properly-paired alignment (in nt)
 	* `refGenome` is the reference genome to be used for alignment - this is passed in as a standard text string (ex. 'hg18', 'hg19', 'mm8', 'mm9')
-	
+
 
 		After error-correcting and demultiplexing, intSiteCaller trims raw MiSeq reads based on Illumina-issued quality scores.  `badQualityBases` is the number of bases below `qualityThreshold`, using [standard Illumina ASCII Q-score encoding](http://support.illumina.com/content/dam/illumina-support/documents/myillumina/a557afc4-bf0e-4dad-9e59-9c740dd1e751/casava_userguide_15011196d.pdf) (p.41-2), that can be observed in a window of `qualitySlidingWindow` before the read is trimmed.
 
@@ -47,12 +48,11 @@ At present names are hard-coded and * can only be `I1`, `R1` and `R2`
 
 * Required `sampleInfo.tsv` contains 'wetside' sample metadata:
 	* `alias` is the human-readable sample description
-	* `linkerSequence` is the linker sequence as seen in MiSeq read 1.  N's indicate the presence of a primerID
-	* `bcSeq` is the barcode used during sample preparation 
+	* `bcSeq` is the barcode used during sample preparation
 	* `gender` is either 'm' of 'f' for male/female, respectively
-	* `primer` is the primer sequence as seen in MiSeq read 2
-	* `ltrBit` is the LTR sequence as seen in MiSeq read 2
-	* `largeLTRFrag` is 43nt of the LTR sequence as seen from MiSeq read **1**
+	* `primer` is the primer sequence as seen in MiSeq read **1**.
+	* `ltrBit` is the LTR sequence as seen in MiSeq read **1**.
+  * `linkerCommon` is the 3' sequence of adapters / linkers used.
 	* `vectorSeq` is a filepath (either absolute or relative to the *primary analysis directory*) to the vector sequence in fasta format -- it is encouraged to place the vector sequence directly in the primary analysis directory, although that is not a requirement
 
 * Required `vector.fasta` vector sequence file as specified by `vectorSeq` in sampleInfo.tsv  
@@ -107,8 +107,8 @@ Rscript ~/intSiteCaller/html_stats.R
 #4. Upload to database
 Rscript ~/intSiteUploader/intSiteUploader.R
 
-#5. Check GTSP numbers, find patient metadate for this run, in this example, 
-#   check_gtsp_patient.R shows the run was for pFR03. 
+#5. Check GTSP numbers, find patient metadate for this run, in this example,
+#   check_gtsp_patient.R shows the run was for pFR03.
 #   check_patient_gtsp.R pFR03 will give us all the sets saved in the database for pFR03
 #   and we save that information as input file to generate report.
 Rscript ~/geneTherapyPatientReportMaker/check_gtsp_patient.R                      #check patient info for this run
@@ -117,9 +117,9 @@ Rscript ~/geneTherapyPatientReportMaker/check_patient_gtsp.R pFR03              
 Rscript ~/geneTherapyPatientReportMaker/check_patient_gtsp.R pFR03 > pFR03.csv    #dump to file
 
 #6. Make report for pFR03
-Rscript ~/geneTherapyPatientReportMaker/makeGeneTherapyPatientReport.R pFR03.csv 
+Rscript ~/geneTherapyPatientReportMaker/makeGeneTherapyPatientReport.R pFR03.csv
 
-#7. WAS.pFR03.20150617.html will be generated. Today was 20150617. 
+#7. WAS.pFR03.20150617.html will be generated. Today was 20150617.
 #   If there are more patients in a run, repeat steps 5 and 6.
 
 #8. Generate genomic heatmap
@@ -213,11 +213,11 @@ Additionally, `blat` and `python` are required and must be executable from any p
 
 ## Tests
 
-A sample dataset is included for verification of integration site calling accuracy. The `testCases` directory contains, 
-- `intSiteValidation` folder, which includes the minimal number of files to process a test run, 
-- `intSiteValidation.digest`, a digest(R version of md5) file for the `RData` files that the test run would produce, 
+A sample dataset is included for verification of integration site calling accuracy. The `testCases` directory contains,
+- `intSiteValidation` folder, which includes the minimal number of files to process a test run,
+- `intSiteValidation.digest`, a digest(R version of md5) file for the `RData` files that the test run would produce,
 - `intSiteValidation.attr`, an attrition table that describes the filtering and alignment process,
-- `test_identical_run.R`, the script to run the piepline and check the output. 
+- `test_identical_run.R`, the script to run the piepline and check the output.
 
 To analyze the test data, run the following commands assuming the current directory is the root of the repository,
 ```

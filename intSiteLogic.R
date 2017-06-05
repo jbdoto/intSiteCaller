@@ -784,6 +784,7 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   stats <- cbind(stats, numAllSingleSonicLengths)
   numUniqueSites <- length(sites.final)
   stats <- cbind(stats, numUniqueSites)
+  save(stats, file="stats.RData")
 
   #' Clean up environment for expansion and clustering of multihits
   rm(uniq.read.loci.mat, uniq.templates, uniq.keys,
@@ -827,10 +828,8 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
       multihit.templates$readPairKey %in% multi.read.loci.mat$readPairKey]
 
     multihit.keys <- keys[keys$readPairKey %in% multihit.readPairs,]
-    multihit.keys$sampleName <- sapply(strsplit(
-      as.character(multihit.keys$names), "%"), "[[", 1)
-    multihit.keys$ID <- sapply(strsplit(
-      as.character(multihit.keys$names), "%"), "[[", 2)
+    multihit.keys$sampleName <- workingDir
+    multihit.keys$ID <- as.character(multihit.keys$names)
 
     #' Medians are based on all the potential sites for a given read, which will
     #' be identical for all reads associated with a readPairKey.

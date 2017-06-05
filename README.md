@@ -34,7 +34,7 @@ At present names are hard-coded and * can only be `I1`, `R1` and `R2`
 	* `qualityThreshold` (Default: Q30) minimum quality to trim for `badQualityBases` consecutive nucleotides within a `qualitySlidingWindow` nt sliding window
 	* `badQualityBases`
 	* `qualitySlidingWindow`
-  * `trimPctIdent` percent identity for matching trim sequences
+  	* `trimPctIdent` percent identity for matching trim sequences
 	* `mingDNA` is the minimum length of genomic DNA (in nt) that is allowed to be passed onto the alignment step
 	* `minPctIdent` is the minimum percent identity that a query sequence has to a putative alignment on the target sequence in order to be considered 'valid'
 	* `maxAlignStart` is the maximum number of nucleotides of the query sequence that do *not* match the putative target sequence before a matched nucleotide is seen
@@ -52,7 +52,7 @@ At present names are hard-coded and * can only be `I1`, `R1` and `R2`
 	* `gender` is either 'm' of 'f' for male/female, respectively
 	* `primer` is the primer sequence as seen in MiSeq read **1**.
 	* `ltrBit` is the LTR sequence as seen in MiSeq read **1**.
-  * `linkerCommon` is the 3' sequence of adapters / linkers used.
+  	* `linkerCommon` is the 3' sequence of adapters / linkers used.
 	* `vectorSeq` is a filepath (either absolute or relative to the *primary analysis directory*) to the vector sequence in fasta format -- it is encouraged to place the vector sequence directly in the primary analysis directory, although that is not a requirement
 
 * Required `vector.fasta` vector sequence file as specified by `vectorSeq` in sampleInfo.tsv  

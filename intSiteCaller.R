@@ -15,7 +15,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-source('supp.R')
+codeDir <- dirname(sub("--file=", "", grep("--file=", commandArgs(trailingOnly=FALSE), value=T)))
+source(file.path(codeDir,'supp.R'))
 
 ## needs blat and python
 commandLinePrograms <- c("blat", "python")
@@ -25,8 +26,7 @@ if(any(!programsPresent)){
 }
 
 ## R packages
-rPackages <- c("ShortRead", "GenomicRanges",
-               "rtracklayer", "BSgenome", "argparse", "igraph")
+rPackages <- c("ShortRead", "rtracklayer", "argparse", "igraph")
 rPackagesPresent <- is.element(rPackages, installed.packages()[,1])
 if(any(!rPackagesPresent)){
     stop(paste(rPackages[!rPackagesPresent]), " is not available")

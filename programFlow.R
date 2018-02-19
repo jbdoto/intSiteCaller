@@ -171,24 +171,47 @@ demultiplex <- function(){
   I1 <- readFasta(list.files("Data", pattern="correctedI1-.", full.names=T))
   
   completeMetadata <- get(load("completeMetadata.RData"))
-  
+
   I1 <- I1[as.vector(sread(I1)) %in% completeMetadata$bcSeq]
-  samples <- completeMetadata[match(as.character(sread(I1)), completeMetadata$bcSeq), "alias"]
   
-  #only necessary if using native data - can parse out description w/ python
-  I1Names <-  sapply(strsplit(as.character(ShortRead::id(I1)), " "), "[[", 1)#for some reason we can't dynamically set name/id on ShortRead!
+  # Determine which reads should go to which sample, recycled barcodes will
+  # cause reads from multiple samples to be grouped together, but data will be 
+  # copied to each output. These samples will further be removed during linker
+  # filtering.
   
-  unlink("Data/demultiplexedReps", recursive=TRUE,  force=TRUE)
+  replicate_barcodes <- unique(completeMetadata$bcSeq[
+    duplicated(completeMetadata$bcSeq)])
+  
+  if(length(replicate_barcodes) > 0){
+    writeLog('Recycled barcodes detected, sample specific reads will need to depend on')
+    writeLog('linker sequence filtering for full demultiplexing.')
+    writeLog('Barcodes in question:')
+    writeLog(paste(replicate_barcodes, collapse = ", "))
+    writeLog('Samples containing barcodes:')
+    writeLog(paste(
+      completeMetadata$alias[completeMetadata$bcSeq %in% replicate_barcodes], 
+      collapse = ', '))
+  }
+  
+  # Can't dynamically set name/id on ShortRead
+  I1Names <-  sapply(strsplit(as.character(ShortRead::id(I1)), " "), "[[", 1)
+  
+  IndexMapping <- lapply(completeMetadata$bcSeq, function(bc, I1){
+    which(as.character(sread(I1)) == bc)
+  }, I1 = I1)
+  names(IndexMapping) <- completeMetadata$alias
+  
+  unlink("Data/demultiplexedReps", recursive=TRUE, force=TRUE)
   suppressWarnings(dir.create("Data/demultiplexedReps"))
 
   writeLog('Starting to demultiplex R1')
   R1 <- readFastq("Data/Undetermined_S0_L001_R1_001.fastq.gz")
-  demultiplex_reads(R1, "R1", I1Names, samples, completeMetadata)
+  demultiplex_reads(R1, "R1", IndexMapping, I1Names, completeMetadata)
   writeLog('completed demultiplexing R1')  
 
   writeLog('Starting to demultiplex R2')
   R2 <- readFastq("Data/Undetermined_S0_L001_R2_001.fastq.gz")
-  demultiplex_reads(R2, "R2", I1Names, samples, completeMetadata)
+  demultiplex_reads(R2, "R2", IndexMapping, I1Names, completeMetadata)
   writeLog('completed demultiplexing R2')
 
   file.create('demultiplex.done')
@@ -197,24 +220,26 @@ demultiplex <- function(){
 #' write fastq for each barcode and each sample
 #' @param reads fastq reads as parsed by readFastq()
 #' @param suffix either "R1" or "R2"
-demultiplex_reads <- function(reads, suffix, I1Names, samples, completeMetadata) {
-    RNames <- sapply(strsplit(as.character(ShortRead::id(reads)), " "), "[[", 1)#for some reason we can't dynamically set name/id on ShortRead!
+demultiplex_reads <- function(reads, suffix, IndexMapping, I1Names, completeMetadata) {
+    # Can't dynamically set name/id on ShortRead
+    RNames <- sapply(strsplit(as.character(ShortRead::id(reads)), " "), "[[", 1)
     names(RNames) <- NULL
-
     reads <- reads[match(I1Names, RNames)]
-    reads <- split(reads, samples)
-    for (i in 1:length(reads)){
 
-        writeLog(paste0('Demultiplexing ', suffix, ' read: ', i, '/', length(reads)))
+    for (i in 1:nrow(completeMetadata)){
+        reads.i <- reads[IndexMapping[[i]]]
+      
+        writeLog(paste0(
+          'Demultiplexing ', suffix, ' sample: ', completeMetadata$alias[i], 
+          ' (', i, '/', nrow(completeMetadata), ')'))
+        
+        alias.i <- completeMetadata$alias[i]
+        barcode.i <- completeMetadata$bcSeq[i]
 
-        barcode.i <- completeMetadata$bcSeq[ completeMetadata$alias == names(reads)[i] ]
-        stopifnot(length(barcode.i)==1)
-        alias_by_barcode <- completeMetadata$alias[ completeMetadata$bcSeq == barcode.i ]
-        stopifnot(length(alias_by_barcode)>=1)
-        fqFiles <- paste0("Data/demultiplexedReps/", alias_by_barcode, "_", suffix, ".fastq.gz")
-        cat(barcode.i, "\t", paste(fqFiles, collapse=" "), "\n" )
+        fq <- paste0("Data/demultiplexedReps/", alias.i, "_", suffix, ".fastq.gz")
+        cat(barcode.i, "\t", fq, "\n" )
 
-        null <- sapply(fqFiles, function(fq) writeFastq(reads[[i]], fq, mode="w") )
+        writeFastq(reads.i, fq, mode="w") 
     }  
 }
 
@@ -427,6 +452,11 @@ processMetadata <- function(){
   
   stopifnot(all( file.exists(completeMetadata$vectorSeq) ))
   
+  ## check for unique linker-barcode combinations
+  if(nrow(completeMetadata) != nrow(
+    unique(completeMetadata[,c("linkerSequence", "bcSeq")]))){
+    stop("Linker:barcode combinations not unique between all samples.")
+  }
   
   ## check primer, ltrBit, largeLTRFrag consistency
   ## largeLTRFrag should start with RC(primer+ltrBit)

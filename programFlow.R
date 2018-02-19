@@ -183,14 +183,12 @@ demultiplex <- function(){
     duplicated(completeMetadata$bcSeq)])
   
   if(length(replicate_barcodes) > 0){
-    writeLog('Recycled barcodes detected, sample specific reads will need to depend on')
-    writeLog('linker sequence filtering for full demultiplexing.')
-    writeLog('Barcodes in question:')
-    writeLog(paste(replicate_barcodes, collapse = ", "))
-    writeLog('Samples containing barcodes:')
-    writeLog(paste(
-      completeMetadata$alias[completeMetadata$bcSeq %in% replicate_barcodes], 
-      collapse = ', '))
+    cat(paste0('Recycled barcodes detected, sample specific reads will need to depend on\n',
+    'linker sequence filtering for full demultiplexing.\n',
+    'Barcodes in question:\n',
+    paste(replicate_barcodes, collapse = ", "), '\n',
+    'Samples containing barcodes:\n',
+    paste(completeMetadata$alias[completeMetadata$bcSeq %in% replicate_barcodes], collapse = ', '), '\n'))
   }
   
   # Can't dynamically set name/id on ShortRead

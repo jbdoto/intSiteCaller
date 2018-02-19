@@ -41,14 +41,14 @@ if( !any(commandArgs(trailingOnly = TRUE) %in% c("-j", "--jobID")) ) {
 commandLinePrograms <- c("blat", "python")
 programsPresent <- sapply(commandLinePrograms, function(app) system2("which", app, stderr=NULL, stdout=NULL))==0
 if(any(!programsPresent)){
-  stop(paste(commandLinePrograms[!programsPresent]), " is not available")
+  stop(paste(commandLinePrograms[!programsPresent]), " is not available.")
 }
 
 ## R packages
 rPackages <- c("ShortRead", "rtracklayer", "argparse", "igraph")
 rPackagesPresent <- is.element(rPackages, installed.packages()[,1])
 if(any(!rPackagesPresent)){
-  stop(paste(rPackages[!rPackagesPresent]), " is not available")
+  stop(paste(rPackages[!rPackagesPresent]), " is not available.")
 }
 
 source(file.path(codeDir,'supp.R'))

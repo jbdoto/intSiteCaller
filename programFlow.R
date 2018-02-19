@@ -183,7 +183,7 @@ demultiplex <- function(){
     duplicated(completeMetadata$bcSeq)])
   
   if(length(replicate_barcodes) > 0){
-    cat(paste0('Recycled barcodes detected, sample specific reads will need to depend on\n',
+    writeLog(paste0('Recycled barcodes detected, sample specific reads will need to depend on\n',
     'linker sequence filtering for full demultiplexing.\n',
     'Barcodes in question:\n',
     paste(replicate_barcodes, collapse = ", "), '\n',
@@ -235,6 +235,7 @@ demultiplex_reads <- function(reads, suffix, IndexMapping, I1Names, completeMeta
         barcode.i <- completeMetadata$bcSeq[i]
 
         fq <- paste0("Data/demultiplexedReps/", alias.i, "_", suffix, ".fastq.gz")
+        writeLog(barcode.i, "\t", fq, "\n" )
         cat(barcode.i, "\t", fq, "\n" )
 
         writeFastq(reads.i, fq, mode="w") 

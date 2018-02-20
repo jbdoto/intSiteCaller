@@ -673,13 +673,17 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   chimera.reads <- failedReads[
     failedReads$R1 %in% hits.R1$qName & failedReads$R2 %in% hits.R2$qName,]
   
-  chimera.alignments <- GRangesList(lapply(1:length(chimera.reads), function(i){
-    R1 <- hits.R1[hits.R1$qName == chimera.reads[i, "R1"]]
-    R2 <- hits.R2[hits.R2$qName == chimera.reads[i, "R2"]]
-    names(R1) <- rep(chimera.reads[i, "names"], length(R1))
-    names(R2) <- rep(chimera.reads[i, "names"], length(R2))
-    c(R2, R1)
-  }))
+  if(nrow(chimera.reads) > 0){
+    chimera.alignments <- GRangesList(lapply(1:nrow(chimera.reads), function(i){
+      R1 <- hits.R1[hits.R1$qName == chimera.reads[i, "R1"]]
+      R2 <- hits.R2[hits.R2$qName == chimera.reads[i, "R2"]]
+      names(R1) <- rep(chimera.reads[i, "names"], length(R1))
+      names(R2) <- rep(chimera.reads[i, "names"], length(R2))
+      c(R2, R1)
+    }))
+  }else{
+    chimera.alignments <- GRangesList()
+  }
   
   chimeraData <- list(
     "read_info" = chimera.reads, "alignments" = chimera.alignments)

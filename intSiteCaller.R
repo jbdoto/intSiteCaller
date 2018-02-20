@@ -16,23 +16,6 @@
 #
 
 codeDir <- dirname(sub("--file=", "", grep("--file=", commandArgs(trailingOnly=FALSE), value=T)))
-source(file.path(codeDir,'supp.R'))
-
-## needs blat and python
-commandLinePrograms <- c("blat", "python")
-programsPresent <- sapply(commandLinePrograms, function(app) system2("which", app, stderr=NULL, stdout=NULL))==0
-if(any(!programsPresent)){
-  stop(paste(commandLinePrograms[!programsPresent]), " is not available")
-}
-
-## R packages
-rPackages <- c("ShortRead", "rtracklayer", "argparse", "igraph")
-rPackagesPresent <- is.element(rPackages, installed.packages()[,1])
-if(any(!rPackagesPresent)){
-    stop(paste(rPackages[!rPackagesPresent]), " is not available")
-}
-
-codeDir <- dirname(sub("--file=", "", grep("--file=", commandArgs(trailingOnly=FALSE), value=T)))
 
 library("argparse", quietly=T)
 
@@ -54,6 +37,21 @@ if( !any(commandArgs(trailingOnly = TRUE) %in% c("-j", "--jobID")) ) {
     parsedArgs$jobID <- basename(normalizePath(parsedArgs$primaryAnalysisDir))
 }
 
+## needs blat and python
+commandLinePrograms <- c("blat", "python")
+programsPresent <- sapply(commandLinePrograms, function(app) system2("which", app, stderr=NULL, stdout=NULL))==0
+if(any(!programsPresent)){
+  stop(paste(commandLinePrograms[!programsPresent]), " is not available.")
+}
+
+## R packages
+rPackages <- c("ShortRead", "rtracklayer", "argparse", "igraph")
+rPackagesPresent <- is.element(rPackages, installed.packages()[,1])
+if(any(!rPackagesPresent)){
+  stop(paste(rPackages[!rPackagesPresent]), " is not available.")
+}
+
+source(file.path(codeDir,'supp.R'))
 source(file.path(parsedArgs$codeDir, "programFlow.R")) 
 
 processMetadata()

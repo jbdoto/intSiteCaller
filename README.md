@@ -234,3 +234,22 @@ Run unit tests with:
 library(testthat)
 test_dir('tests')
 ```
+
+## Building Dockerfile
+
+Ensure you have Docker installed on your system, details here: https://docs.docker.com/docker-for-mac/install/
+
+In the directory where the Dockerfile is located on your machine, run the following command (takes about 3.5 minutes):
+
+	docker build . -t intsitecaller
+
+## Running Docker image
+
+Once built, the container can be run with the following command:
+
+	docker run -it intsitecaller 
+
+	# OR, if you want to  override the default startup command:
+
+	docker run --entrypoint=/bin/bash -it intsitecaller
+

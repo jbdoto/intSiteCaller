@@ -2,12 +2,10 @@
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
 # To update dependencies, you can search here the anaconda repo like this: https://anaconda.org/search?q=glib
-
 @EXPLICIT
-https://anaconda.org/r/r-findpython/1.0.3/download/linux-64/r-findpython-1.0.3-r351h6115d3f_0.tar.bz2
-https://anaconda.org/r/r-proto/1.0.0/download/linux-64/r-proto-1.0.0-r351h6115d3f_0.tar.bz2
-#https://anaconda.org/r/r-argparse/1.1.1/download/linux-64/r-argparse-1.1.1-r351h6115d3f_0.tar.bz2
-https://anaconda.org/r/r-argparse/1.0.4/download/linux-64/r-argparse-1.0.4-r3.3.2_0.tar.bz2
+https://anaconda.org/r/r-findpython/1.0.1/download/linux-64/r-findpython-1.0.1-r3.3.2_0.tar.bz2
+https://anaconda.org/r/r-proto/0.3_10/download/linux-64/r-proto-0.3_10-r3.3.1_2.tar.bz2
+https://anaconda.org/bioconda/r-argparse/1.0.1/download/linux-64/r-argparse-1.0.1-py27r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/_r-mutex-1.0.0-anacondar_1.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/biopython-1.67-np111py27_0.tar.bz2
 https://repo.continuum.io/pkgs/main/linux-64/blas-1.0-mkl.tar.bz2
@@ -20,12 +18,10 @@ https://repo.continuum.io/pkgs/free/linux-64/curl-7.49.0-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/dbus-1.10.10-0.tar.bz2
 https://conda.anaconda.org/trent/linux-64/dos2unix-6.0.3-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/enum34-1.1.6-py27_0.tar.bz2
-# https://conda.anaconda.org/bioconda/linux-64/expat-2.1.0-0.tar.bz2
 https://anaconda.org/conda-forge/expat/2.1.0/download/linux-64/expat-2.1.0-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/fontconfig-2.11.1-6.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/freetype-2.5.5-1.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/git-2.6.4-0.tar.bz2
-# https://conda.anaconda.org/r/linux-64/glib-2.43.0-2.tar.bz2
 https://anaconda.org/asmeurer/glib/2.43.0/download/linux-64/glib-2.43.0-2.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/gmp-6.1.2-0.tar.bz2
 # had problems with this after updating other dependencies: https://repo.continuum.io/pkgs/free/linux-64/gsl-2.1-1.tar.bz2
@@ -45,11 +41,9 @@ https://repo.continuum.io/pkgs/free/linux-64/libsodium-1.0.10-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/libtiff-4.0.6-2.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/libuuid-1.0.3-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/libxcb-1.12-1.tar.bz2
-# https://conda.anaconda.org/bioconda/linux-64/libxml2-2.9.3-0.tar.bz2
 https://anaconda.org/IOOS/libxml2/2.9.3/download/linux-64/libxml2-2.9.3-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/mkl-11.3.3-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/nano-2.4.1-0.tar.bz2
-# https://conda.anaconda.org/r/linux-64/ncurses-5.9-4.tar.bz2
 https://anaconda.org/conda-forge/ncurses/5.9/download/linux-64/ncurses-5.9-4.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/numpy-1.11.0-py27_1.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/openssl-1.0.2h-1.tar.bz2
@@ -65,7 +59,6 @@ https://repo.continuum.io/pkgs/free/linux-64/qt-5.6.2-0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-3.3.1-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-assertthat-0.1-r3.3.1_4.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-backports-1.0.4-r3.3.1_0.tar.bz2
-#https://anaconda.org/r/r-base/3.6.1/download/linux-64/r-base-3.6.1-haffb61f_2.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-base-3.3.1-1.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-base64enc-0.1_3-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-bh-1.62.0_1-r3.3.1_0.tar.bz2
@@ -73,8 +66,7 @@ https://conda.anaconda.org/r/linux-64/r-bitops-1.0_6-r3.3.1_2.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-boot-1.3_18-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/bioconda/linux-64/r-car-2.1_4-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-caret-6.0_70-r3.3.1_0.tar.bz2
-# https://conda.anaconda.org/r/linux-64/r-catools-1.17.1-1a.tar.bz2
-https://anaconda.org/conda-forge/r-catools/1.17.1.1/download/linux-64/r-catools-1.17.1.1-r351h29659fb_1002.tar.bz2
+https://anaconda.org/r/r-catools/1.17.1/download/linux-64/r-catools-1.17.1-r3.3.1_2.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-class-7.3_14-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-cluster-2.0.4-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-codetools-0.2_14-r3.3.1_0.tar.bz2
@@ -91,8 +83,7 @@ https://conda.anaconda.org/r/linux-64/r-essentials-1.4.3-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-evaluate-0.10-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-foreach-1.4.3-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-foreign-0.8_66-r3.3.1_0.tar.bz2
-# https://conda.anaconda.org/bioconda/linux-64/r-getopt-1.20.0-r3.3.1_0.tar.bz2
-https://anaconda.org/conda-forge/r-getopt/1.20.0/download/linux-64/r-getopt-1.20.0-r3.4.1_0.tar.bz2
+https://anaconda.org/r/r-getopt/1.20.0/download/linux-64/r-getopt-1.20.0-r3.3.2_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-ggplot2-2.2.0-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-gistr-0.3.6-r3.3.1_0.tar.bz2
 https://conda.anaconda.org/r/linux-64/r-git2r-0.15.0-r3.3.1_0.tar.bz2
@@ -182,19 +173,30 @@ https://conda.anaconda.org/bioconda/linux-64/wkhtmltopdf-0.12.3-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/xz-5.2.2-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/zeromq-4.1.5-0.tar.bz2
 https://repo.continuum.io/pkgs/free/linux-64/zlib-1.2.8-3.tar.bz2
+https://anaconda.org/bioconda/bioconductor-shortread/1.32.0/download/linux-64/bioconductor-shortread-1.32.0-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-biocgenerics/0.20.0/download/linux-64/bioconductor-biocgenerics-0.20.0-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-biocparallel/1.6.6/download/linux-64/bioconductor-biocparallel-1.6.6-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-biostrings/2.42.1/download/linux-64/bioconductor-biostrings-2.42.1-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-bsgenome/1.42.0/download/linux-64/bioconductor-bsgenome-1.42.0-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-genomeinfodb/1.10.3/download/linux-64/bioconductor-genomeinfodb-1.10.3-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-genomicalignments/1.10.0/download/linux-64/bioconductor-genomicalignments-1.10.0-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-genomicranges/1.26.4/download/linux-64/bioconductor-genomicranges-1.26.4-r3.3.1_0.tar.bz2
+https://anaconda.org/bushmanlab/bioconductor-hiannotator/1.6.2/download/linux-64/bioconductor-hiannotator-1.6.2-0.tar.bz2
+https://anaconda.org/conda-forge/r-rmysql/0.10.11/download/linux-64/r-rmysql-0.10.11-r3.3.2_0.tar.bz2
+https://anaconda.org/conda-forge/r-rsvgtipsdevice/1.0_7/download/linux-64/r-rsvgtipsdevice-1.0_7-r3.3.2_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-rtracklayer/1.34.2/download/linux-64/bioconductor-rtracklayer-1.34.2-r3.3.1_1.tar.bz2
+https://anaconda.org/bushmanlab/r-soniclength/1.4.4/download/linux-64/r-soniclength-1.4.4-r3.2.2_0.tar.bz2
+https://anaconda.org/r/r-rjson/0.2.15/download/linux-64/r-rjson-0.2.15-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-s4vectors/0.12.2/download/linux-64/bioconductor-s4vectors-0.12.2-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-iranges/2.8.2/download/linux-64/bioconductor-iranges-2.8.2-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-xvector/0.14.1/download/linux-64/bioconductor-xvector-0.14.1-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-zlibbioc/1.20.0/download/linux-64/bioconductor-zlibbioc-1.20.0-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-rsamtools/1.26.1/download/linux-64/bioconductor-rsamtools-1.26.1-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-summarizedexperiment/1.4.0/download/linux-64/bioconductor-summarizedexperiment-1.4.0-r3.3.1_0.tar.bz2
+https://anaconda.org/bioconda/bioconductor-biobase/2.34.0/download/linux-64/bioconductor-biobase-2.34.0-r3.3.1_0.tar.bz2
+https://anaconda.org/conda-forge/r-latticeextra/0.6_28/download/linux-64/r-latticeextra-0.6_28-r3.3.2_0.tar.bz2
 
-# Additional R dependencies (might need to adjust these...)
-https://anaconda.org/bioconda/bioconductor-shortread/1.48.0/download/linux-64/bioconductor-shortread-1.48.0-r40h5f743cb_0.tar.bz2
-https://anaconda.org/bioconda/bioconductor-biocgenerics/0.36.0/download/noarch/bioconductor-biocgenerics-0.36.0-r40_0.tar.bz2
-https://anaconda.org/bioconda/bioconductor-biocparallel/1.24.0/download/linux-64/bioconductor-biocparallel-1.24.0-r40h5f743cb_0.tar.bz2
-https://anaconda.org/bioconda/bioconductor-biostrings/2.58.0/download/linux-64/bioconductor-biostrings-2.58.0-r40h037d062_0.tar.bz2
-https://anaconda.org/bioconda/bioconductor-bsgenome/1.58.0/download/noarch/bioconductor-bsgenome-1.58.0-r40_0.tar.bz2
-https://anaconda.org/bioconda/bioconductor-genomeinfodb/1.26.0/download/noarch/bioconductor-genomeinfodb-1.26.0-r40_0.tar.bz2
-https://anaconda.org/bioconda/bioconductor-genomicalignments/1.26.0/download/linux-64/bioconductor-genomicalignments-1.26.0-r40h037d062_0.tar.bz2
-https://anaconda.org/bioconda/bioconductor-genomicranges/1.42.0/download/linux-64/bioconductor-genomicranges-1.42.0-r40h037d062_0.tar.bz2
-https://anaconda.org/bioconda/bioconductor-hiannotator/1.24.0/download/noarch/bioconductor-hiannotator-1.24.0-r40_0.tar.bz2
-https://anaconda.org/conda-forge/r-rmysql/0.10.21/download/linux-64/r-rmysql-0.10.21-r36hcfec24a_0.tar.bz2
-https://anaconda.org/conda-forge/r-rsvgtipsdevice/1.0_7/download/linux-64/r-rsvgtipsdevice-1.0_7-r40hcdcec82_1003.tar.bz2
-https://anaconda.org/bioconda/bioconductor-rtracklayer/1.50.0/download/linux-64/bioconductor-rtracklayer-1.50.0-r40h9bb0e53_1.tar.bz2
-https://anaconda.org/conda-forge/r-soniclength/1.4.6/download/noarch/r-soniclength-1.4.6-r36h6115d3f_2.tar.bz2
-https://anaconda.org/r/r-rjson/0.2.20/download/linux-64/r-rjson-0.2.20-r36h29659fb_0.tar.bz2
+# no 3.3.1 version:
+https://anaconda.org/conda-forge/r-hwriter/1.3.2/download/linux-64/r-hwriter-1.3.2-r3.3.2_0.tar.bz2
+
+

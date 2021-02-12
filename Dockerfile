@@ -14,8 +14,14 @@ COPY ./*.dat /intSiteCaller/
 COPY ./default_processingParams.tsv /intSiteCaller/
 COPY conda_spec.txt /intSiteCaller/conda_spec.txt
 COPY ./startupScript.sh /intSiteCaller/startupScript.sh
+COPY ./installPackages.R /intSiteCaller/installPackages.R
 
 WORKDIR /intSiteCaller
+RUN apt-get update -y  && \
+    apt-get install -y libcurl4-openssl-dev \
+    gcc \
+    make  && \
+    apt-get clean
 
 RUN conda create --name intSiteCaller --file conda_spec.txt
 
@@ -23,5 +29,7 @@ RUN conda create --name intSiteCaller --file conda_spec.txt
 # https://pythonspeed.com/articles/activate-conda-dockerfile/
 SHELL ["conda", "run", "-n", "intSiteCaller", "/bin/bash", "-c"]
 
-ENTRYPOINT ["conda", "run", "-n", "intSiteCaller", "Rscript", "intSiteCaller.R"]
-#CMD ["/bin/bash", "startupScript.sh"]
+# Install non-Conda dependencies:
+RUN Rscript installPackages.R
+WORKDIR /scratch
+ENTRYPOINT ["conda", "run", "-n", "intSiteCaller", "Rscript", "/intSiteCaller/intSiteCaller.R"]

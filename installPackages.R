@@ -1,2 +1,6 @@
 install.packages('RCurl', repos='http://www.omegahat.net/R')
 install.packages('XML', repos='http://www.omegahat.net/R')
+install.packages("BiocManager", repos='http://cran.us.r-project.org')
+BiocManager::install("hiAnnotator")
+BiocManager::install("sonicLength")
+BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")

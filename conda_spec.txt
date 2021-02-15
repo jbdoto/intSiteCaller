@@ -181,11 +181,9 @@ https://anaconda.org/bioconda/bioconductor-bsgenome/1.42.0/download/linux-64/bio
 https://anaconda.org/bioconda/bioconductor-genomeinfodb/1.10.3/download/linux-64/bioconductor-genomeinfodb-1.10.3-r3.3.1_0.tar.bz2
 https://anaconda.org/bioconda/bioconductor-genomicalignments/1.10.0/download/linux-64/bioconductor-genomicalignments-1.10.0-r3.3.1_0.tar.bz2
 https://anaconda.org/bioconda/bioconductor-genomicranges/1.26.4/download/linux-64/bioconductor-genomicranges-1.26.4-r3.3.1_0.tar.bz2
-https://anaconda.org/bushmanlab/bioconductor-hiannotator/1.6.2/download/linux-64/bioconductor-hiannotator-1.6.2-0.tar.bz2
 https://anaconda.org/conda-forge/r-rmysql/0.10.11/download/linux-64/r-rmysql-0.10.11-r3.3.2_0.tar.bz2
 https://anaconda.org/conda-forge/r-rsvgtipsdevice/1.0_7/download/linux-64/r-rsvgtipsdevice-1.0_7-r3.3.2_0.tar.bz2
 https://anaconda.org/bioconda/bioconductor-rtracklayer/1.34.2/download/linux-64/bioconductor-rtracklayer-1.34.2-r3.3.1_1.tar.bz2
-https://anaconda.org/bushmanlab/r-soniclength/1.4.4/download/linux-64/r-soniclength-1.4.4-r3.2.2_0.tar.bz2
 https://anaconda.org/r/r-rjson/0.2.15/download/linux-64/r-rjson-0.2.15-r3.3.1_0.tar.bz2
 https://anaconda.org/bioconda/bioconductor-s4vectors/0.12.2/download/linux-64/bioconductor-s4vectors-0.12.2-r3.3.1_0.tar.bz2
 https://anaconda.org/bioconda/bioconductor-iranges/2.8.2/download/linux-64/bioconductor-iranges-2.8.2-r3.3.1_0.tar.bz2

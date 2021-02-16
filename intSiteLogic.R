@@ -496,7 +496,7 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
     mcols(algns.gr) <- algns[,c("from", "qName", "matches", "repMatches", 
                                 "misMatches", "qStart", "qEnd", "qSize", 
                                 "tBaseInsert")]
-    rm(algns)
+    #rm(algns)
     algns.gr
   }
   

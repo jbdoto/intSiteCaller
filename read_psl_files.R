@@ -13,8 +13,13 @@ readpsl <- function(pslFile, toNull=NULL) {
                   "character", rep("numeric",4), rep("character",3))
   
   psl <- lapply(pslFile, function(f) {
-    message("Reading ",f)
-    data.table::fread( paste("zcat", f), sep="\t" )
+    message("Decompressing: ",f)
+    # gzip -d decompress, -k keep original, -f force overwrite of psl file
+    system(paste("gzip -dkf", f))
+    # cleave off .gz suffix to get filename:
+    decompressedFilename <- substr(f, 0, nchar(f) - 3)
+    message(paste("Reading: ", decompressedFilename))
+    data.table::fread(decompressedFilename , sep="\t" )
   })
   psl <- data.table::rbindlist(psl)
   colnames(psl) <- cols

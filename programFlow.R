@@ -385,15 +385,13 @@ postTrimReads <- function(){
      }
   }
 
-  # check_error()
-  #
-  # writeLog('Calling check_error()')
-  # runProcess(jobName=sprintf("ErrorCheck_%s", jobID),
-  #            maxmem=4000,
-  #            logFile="logs/errorCheck.txt",
-  #            command=paste0("Rscript -e \"source('", codeDir, "/programFlow.R'); check_error();\""))
-  writeLog("Job complete.")
-  quit()
+  check_error()
+
+  writeLog('Calling check_error()')
+  runProcess(jobName=sprintf("ErrorCheck_%s", jobID),
+             maxmem=4000,
+             logFile="logs/errorCheck.txt",
+             command=paste0("Rscript -e \"source('", codeDir, "/programFlow.R'); check_error();\""))
 }
 
 trimReads <- function( dataN ){

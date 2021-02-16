@@ -473,6 +473,8 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   #' @return Granges object
   
   processBLATData <- function(algns, from, refGenome){
+    message("Processing BLAT Data:", paste(algns, from, refGenome))
+
     stopifnot(from == "R1" | from == "R2")
     algns$from <- from
     algns$qtStart <- ifelse(
@@ -508,7 +510,9 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   psl.R1 <- list.files(".", pattern="R1.*.fa.psl.gz")
   message("R1 psl:\n", paste(psl.R1, collapse="\n"),"\n")
   hits.R1 <- readpsl(psl.R1)
-  
+
+  message("Read PSL files successfully.")
+
   #' Record the number of reads with R1 and R2 alignments
   readsAligning <- length(
     which(keys$R2 %in% hits.R2$qName & keys$R1 %in% hits.R1$qName))
@@ -523,7 +527,9 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   hits.R1 <- qualityFilter(hits.R1, maxAlignStart, minPercentIdentity)
   hits.R1 <- processBLATData(hits.R1, "R1", refGenome)
   save(hits.R1, file="hits.R1.RData")
-  
+
+  message("Saved hits RData.")
+
   #no more '.p' or '.l' nomenclature here
   #we're combining alignments from both sides of the read
 
@@ -549,7 +555,9 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
 
   red.hits.R2 <- reduce(
     flank(hits.R2, -1, start = TRUE), min.gapwidth = 0L, with.revmap = TRUE)
-  
+
+  message("Reduced hits.")
+
   #' The following finds all posible combinations of R1 and R2 loci which meet
   #' criteria for pairing. These include: oneEach (each pairing must come from
   #' one R1 and one R2 loci), opposite strands (paired loci should be present on
@@ -611,7 +619,9 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
     loci.key$R2.qNames, function(x){
       which(unique_key_pairs$R2 %in% x)
   }))
-  
+
+  message("Processed loci.")
+
   #' Using the range information from the filtered paired alignments, the code
   #' constructs a GRanges object from the R1.loci and R2.loci. R2.loci are the 
   #' integration site positions while the R1.loci are the various breakpoints.
@@ -655,7 +665,8 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
     keys[keys$readPairKey %in% read.loci.mat$readPairKey,])
   stats <- cbind(stats, numProperlyPairedAlignments)
   save(stats, file="stats.RData")
-  
+  message("Alignments paired.")
+
   #' Templates aligning to single loci are termed unique, while templates
   #' aligning to multiple loci are termed multihits.
   readPairCounts <- table(read.loci.mat$readPairKey)
@@ -693,7 +704,9 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   chimeras <- length(unique(chimera.reads$names))
   stats <- cbind(stats, chimeras)
   save(stats, file="stats.RData")
-  
+
+  message("Processed chimeras.")
+
   #' ########## IDENTIFY UNIQUELY-PAIRED READS (real sites) ##########
   #' Below, the paired.loci object is expanded to create the genomic alignments
   #' for each read that mapped to a single genomic loci. This data is then 
@@ -719,6 +732,7 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   
   allSites <- uniq.reads
   save(allSites, file="allSites.RData")
+  message("Saved allSites.RData.")
 
   sites.final <- dereplicateSites(allSites)
   if(length(sites.final)>0){
@@ -728,7 +742,8 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
                                 start(flank(sites.final, width=-1, start=TRUE)))
   }
   save(sites.final, file="sites.final.RData")
-  
+  message("Saved sites.final.RData.")
+
   #' Record metrics about unique alignments to the stats object
   numAllSingleReads <- length(allSites)
   stats <- cbind(stats, numAllSingleReads)
@@ -848,7 +863,9 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   names(multihitData) <- c("unclusteredMultihits", "clusteredMultihitPositions", "clusteredMultihitLengths")
   
   save(multihitData, file="multihitData.RData")
-  
+
+  message("Processed multihits.")
+
   #' Record multihit metrics (reads, clusters, sonicLengths)
   multihitReads <- nrow(keys[keys$readPairKey %in% multihit.readPairs,])
   stats <- cbind(stats, multihitReads)
@@ -871,6 +888,8 @@ processAlignments <- function(workingDir, minPercentIdentity, maxAlignStart,
   stats <- cbind(stats, totalEvents)
   
   save(stats, file="stats.RData")
-  
+  message("Completed alignments.")
+
+  "processAlignments Complete" # Return value which gets saved as 'callStatus.RData'
   ####### END OF PROCESS ALIGNMENTS ########
 }

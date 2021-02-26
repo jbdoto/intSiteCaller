@@ -90,7 +90,9 @@ runProcess <- function(queue="normal", cpus=1, maxmem=NULL, wait=NULL, jobName=N
    } else { 
       # While running serially, submit process to the system and wait for it to complete.
       writeLog(paste0('runProcess() (serial) command: ', command))
-      system(command, wait=FALSE)
+      value <- Sys.getenv('SERIAL_WAIT', unset=TRUE)
+      cast_value <- as.logical(value)
+      system(command, wait=cast_value)
    }
 }
 

@@ -245,11 +245,19 @@ In the directory where the Dockerfile is located on your machine, run the follow
 
 ## Running Docker image
 
+There are 2 Dockerfiles in this project.
+
+The main file `Dockerfile`, builds the intSiteCaller software, while the secondary Dockerfile, `entrypoint.dockerfile`
+overlays an entrypoint containing some pre and post job hooks.  These hooks download the input data from S3, and
+upload the results of the job to S3.
+
 Once built, the container can be run with the following command:
 
-	docker run -it intsitecaller 
+	docker run -it intsitecaller-base
 
 	# OR, if you want to  override the default startup command:
 
-	docker run --entrypoint=/bin/bash -it intsitecaller
+	docker run --entrypoint=/bin/bash -it intsitecaller-base
 
+	To build the container with additional hooks, do the following:
+	docker build -f entrypoint.dockerfile . --build-arg BASE_IMAGE=intsitecaller -t intsitecaller

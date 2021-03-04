@@ -91,7 +91,6 @@ runProcess <- function(queue="normal", cpus=1, maxmem=NULL, wait=NULL, jobName=N
      # submit next Rscript command as aws-batch job, with RUN_COMMAND set.
      # re-set all parameters to job, parent id, and job type.
 
-     job_name <- Sys.getenv('JOB_NAME')
      job_queue <- Sys.getenv('JOB_QUEUE')
      job_defintion <- Sys.getenv('JOB_DEFINITION')
      bucket_name <- Sys.getenv('BUCKET_NAME')
@@ -115,7 +114,7 @@ runProcess <- function(queue="normal", cpus=1, maxmem=NULL, wait=NULL, jobName=N
      # [1] "\"Rscript -e \\\"source('/intSiteCaller/programFlow.R'); errorCorrectBC();\\\"\""
 
      submit_command <- paste('python /intSiteCaller/submit_job.py',
-                             ' --job-name=', job_name,
+                             ' --job-name=', jobName,
                              ' --job-queue=', job_queue,
                              ' --job-definition=', job_defintion,
                              " --run-command=", escaped_command,
@@ -125,6 +124,7 @@ runProcess <- function(queue="normal", cpus=1, maxmem=NULL, wait=NULL, jobName=N
                              " --job-type=", "CHILD", # all jobs queued hereafter are Children of spawing parent
                              " --parent-aws-batch-job-id=", parent_aws_batch_job_id,
                              " --parent-aws-batch-job-attempt=", parent_aws_batch_job_attempt,
+                             " --memory=", maxmem,
                              sep = '')
 
      # https://docs.aws.amazon.com/cli/latest/reference/batch/submit-job.html
@@ -438,6 +438,10 @@ postTrimReads <- function(){
              maxmem=4000,
              logFile="logs/errorCheck.txt",
              command=paste0("Rscript -e \"source('", codeDir, "/programFlow.R'); check_error();\""))
+
+  # create marker file to indicate everything completed,
+  # used by parent job to exit to post run routines:
+  file.create("job.complete")
 }
 
 trimReads <- function( dataN ){
@@ -543,7 +547,7 @@ processMetadata <- function(){
   writeLog('Waiting for downstream job completion...')
   repeat
   {
-    if (file.exists("logs/errorCheck.txt")) break
+    if (file.exists("job.complete")) break
     Sys.sleep(1)
   }
   writeLog('Job complete, proceeding with post-run actions...')

@@ -14,6 +14,8 @@ cloudwatch = boto3.client(
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+parser.add_argument("--vcpus", help="overrides the configured vcpus for the job", type=str, default='1')
+parser.add_argument("--memory", help="overrides the configured memory for the job", type=str, default='8000')
 parser.add_argument("--job-name", help="name of the job", type=str, default='intsitecaller')
 parser.add_argument("--job-queue", help="name of the job queue to submit this job", type=str, default='intsitecaller-job-queue')
 parser.add_argument("--job-definition", help="name of the job job definition", type=str, default="intsitecaller")
@@ -41,13 +43,18 @@ def main():
     job_type = args.job_type
     parent_aws_batch_job_id = args.parent_aws_batch_job_id
     parent_aws_batch_job_attempt = args.parent_aws_batch_job_attempt
+    vcpus = args.vcpus
+    memory = args.memory
     print('got args: %s', args)
 
     submitJobResponse = batch.submit_job(
         jobName=job_name,
         jobQueue=job_queue,
         jobDefinition=job_definition,
-        containerOverrides={'environment': [{"name": "RUN_COMMAND", "value": run_command},
+        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/batch.html#Batch.Client.submit_job
+        containerOverrides={'environment': [{"name": "vcpus", "value": vcpus},
+                                            {"name": "memory", "value": memory},
+                                            {"name": "RUN_COMMAND", "value": run_command},
                                             {"name": "BUCKET_NAME", "value": bucket_name},
                                             {"name": "OBJECT_NAME", "value": object_name},
                                             {"name": "SAMPLE_ID", "value": sample_id},

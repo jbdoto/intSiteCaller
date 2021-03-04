@@ -1,36 +1,33 @@
 #!/bin/bash -e
 
-download(){
+# This pre-run.sh hook should only run once as part of the parent job.
+# Child jobs will not download data.
+
+prepare_workspace(){
   
   set -o noglob
 
-  local from=$1
-  local files=$2
+  # should be in /scratch/results/$BATCH_JOB_ID/$BATCH_JOB_ATTEMPT/ directory at this point...see entrypoint.sh
+  # sample data will end up in /scratch/results/$BATCH_JOB_ID/$BATCH_JOB_ATTEMPT/$SAMPLE_ID
+  # For Lustre-based workloads, we don't need to download, files should be there.
+  # OBJECT_NAME name parameter actually contains path info, like 'samples/G6RV5.tar.gz'
+  # FILENAME just has G6RV5.tar.gz
+  cp /scratch/results/${OBJECT_NAME} /scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${FILENAME}
 
-  # should be in /scratch/$BATCH_JOB_ID/$BATCH_JOB_ATTEMPT/ directory at this point...see entrypoint.sh
-  # sample data will end up in /scratch/$BATCH_JOB_ID/$BATCH_JOB_ATTEMPT/$SAMPLE_ID
-  for file in ${files}
-  do
-    echo "aws s3 cp ${from} . --recursive --exclude \"*\" --include \"${file}\""
-    aws s3 cp ${from} . --recursive --exclude "*" --include "${file}"
+  # decompress tar.gz files:
+  echo "I am in directory:"
+  pwd
 
-    # decompress tar.gz files:
-    if [[ $file == *.tar.gz ]]
-    then
-      echo "decompressing ${file}..."
-      tar -xzvf "${file}"
-    fi
+  if [[ ${FILENAME} == *.tar.gz ]]
+  then
+    cd /scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/
+    echo "decompressing /scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${FILENAME}..."
+    tar -xzvf "/scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${FILENAME}"
+  else
+    echo "tar.gz format not detected: ${FILENAME}."
+  fi
 
-  done
 }
-
-# Job results path in job results bucket
-if [[ $STATE_MACHINE_NAME ]]; then
-  jobresults=${JOBRESULTS_BUCKET}/${SAMPLE_ID}/${STATE_MACHINE_NAME}/${EXECUTION_NAME}
-else
-  jobresults=${JOBRESULTS_BUCKET}/${1}
-fi
-
 
 # env will have following set:
 # BUCKET_NAME: "intsitecaller-samples"
@@ -39,4 +36,4 @@ fi
 # SERIAL_WAIT: "TRUE" - setting this to false runs everything in parallel, which will likely require a very large machine to run.
 
 # Download inputs
-download "s3://${SAMPLES_BUCKET}/" "${OBJECT_NAME}"
+prepare_workspace

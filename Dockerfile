@@ -15,13 +15,17 @@ COPY ./default_processingParams.tsv /intSiteCaller/
 COPY conda_spec.txt /intSiteCaller/conda_spec.txt
 COPY ./startupScript.sh /intSiteCaller/startupScript.sh
 COPY ./installPackages.R /intSiteCaller/installPackages.R
+COPY ./submit_job.py /intSiteCaller/submit_job.py
 
 WORKDIR /intSiteCaller
 RUN apt-get update -y  && \
     apt-get install -y libcurl4-openssl-dev \
     gcc \
+    unzip \
     make  && \
     apt-get clean
+
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
 
 RUN conda create --name intSiteCaller --file conda_spec.txt
 

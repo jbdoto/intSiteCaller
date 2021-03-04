@@ -87,12 +87,56 @@ runProcess <- function(queue="normal", cpus=1, maxmem=NULL, wait=NULL, jobName=N
        
       jobId <- system(cmd, intern=TRUE)
       writeLog(paste0('runProcess(); command: ', cmd))
-   } else { 
-      # While running serially, submit process to the system and wait for it to complete.
-      writeLog(paste0('runProcess() (serial) command: ', command))
-      value <- Sys.getenv('SERIAL_WAIT', unset=TRUE)
-      cast_value <- as.logical(value)
-      system(command, wait=cast_value)
+   } else if (config$parallelize == 'aws-batch') {
+     # submit next Rscript command as aws-batch job, with RUN_COMMAND set.
+     # re-set all parameters to job, parent id, and job type.
+
+     job_name <- Sys.getenv('JOB_NAME')
+     job_queue <- Sys.getenv('JOB_QUEUE')
+     job_defintion <- Sys.getenv('JOB_DEFINITION')
+     bucket_name <- Sys.getenv('BUCKET_NAME')
+     object_name <- Sys.getenv('OBJECT_NAME')
+     sample_id <- Sys.getenv('SAMPLE_ID')
+     job_type <- Sys.getenv('JOB_TYPE')
+
+     if (job_type == 'PARENT') {
+       # for a parent job, this won't be set
+       parent_aws_batch_job_id <- Sys.getenv('AWS_BATCH_JOB_ID')
+       parent_aws_batch_job_attempt <- Sys.getenv('AWS_BATCH_JOB_ATTEMPT')
+     }else {
+       parent_aws_batch_job_id <- Sys.getenv('PARENT_AWS_BATCH_JOB_ID')
+       parent_aws_batch_job_attempt <- Sys.getenv('PARENT_AWS_BATCH_JOB_ATTEMPT')
+     }
+
+     escaped_command <- shQuote(command, "sh")
+     writeLog(escaped_command)
+     # [1] "Rscript -e \"source('/intSiteCaller/programFlow.R'); errorCorrectBC();\""
+     # > shQuote(command, "sh")
+     # [1] "\"Rscript -e \\\"source('/intSiteCaller/programFlow.R'); errorCorrectBC();\\\"\""
+
+     submit_command <- paste('python /intSiteCaller/submit_job.py',
+                             ' --job-name=', job_name,
+                             ' --job-queue=', job_queue,
+                             ' --job-definition=', job_defintion,
+                             " --run-command=", escaped_command,
+                             " --bucket-name=", bucket_name,
+                             " --object-name=", object_name,
+                             " --sample-id=", sample_id,
+                             " --job-type=", "CHILD", # all jobs queued hereafter are Children of spawing parent
+                             " --parent-aws-batch-job-id=", parent_aws_batch_job_id,
+                             " --parent-aws-batch-job-attempt=", parent_aws_batch_job_attempt,
+                             sep = '')
+
+     # https://docs.aws.amazon.com/cli/latest/reference/batch/submit-job.html
+     # in future, when R is updated, could use this perhaps: https://paws-r.github.io/
+     writeLog(paste0('invoking batch command: ', submit_command))
+     system(submit_command,  wait = TRUE)
+   } else {
+     # While running serially, submit process to the system and wait for it to complete.
+     writeLog(paste0('runProcess() (serial) command: ', command))
+     value <- Sys.getenv('SERIAL_WAIT', unset = TRUE)
+     cast_value <- as.logical(value)
+     system(command, wait = cast_value)
    }
 }
 
@@ -494,6 +538,15 @@ processMetadata <- function(){
              maxmem=20000,
              logFile="logs/errorCorrectOutput.txt",
              command=paste0("Rscript -e \"source('", codeDir, "/programFlow.R'); errorCorrectBC();\""))
+
+ # wait for final step before exiting, error_count:
+  writeLog('Waiting for downstream job completion...')
+  repeat
+  {
+    if (file.exists("logs/errorCheck.txt")) break
+    Sys.sleep(1)
+  }
+  writeLog('Job complete, proceeding with post-run actions...')
 }
 
 

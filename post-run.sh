@@ -16,6 +16,10 @@ upload(){
 
     echo "aws s3 cp . ${to} --recursive --exclude \"*\" --include \"${file}\""
     aws s3 cp . ${to} --recursive --exclude "*" --include "${file}"
+
+    # TODO: sync back new zip file to S3 via HSM?
+    #sudo lfs hsm_archive path/to/export/file
+
   done
 }
 
@@ -26,8 +30,11 @@ else
   jobresults=${JOBRESULTS_BUCKET}/${1}
 fi
 
-# Upload outputs
-upload "s3://${jobresults}/" "${SAMPLE_ID}_results.tar.gz" "/scratch/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${SAMPLE_ID}"
+# Upload outputs post-parent job
+if [[ ${JOB_TYPE} == 'PARENT' ]]
+  then
+  upload "s3://${jobresults}/" "${SAMPLE_ID}_results.tar.gz" "/scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${SAMPLE_ID}"
+fi
 
 # Record execution succeeded in CloudWatch
 if [[ $STATE_MACHINE_NAME ]]; then

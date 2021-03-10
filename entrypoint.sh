@@ -28,6 +28,8 @@ else
   run.sh $@
 
   post-run.sh ${exec_dir}
+  #TODO: we should move the post-run cleanup and upload into a trapped function here, to always run
+  # If jobs fail, Lustre will have data hanging around, which will cost $$$
 
   # Cardinality of capturing all uniquely named child jobs (ie: Align_Seqs-G6RV5_1..Align_Seqs-G6RV5_60)
   # could be $$$...keep it simple, just tracking parent job, 'intsitecaller'.

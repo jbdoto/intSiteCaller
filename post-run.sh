@@ -17,10 +17,18 @@ upload(){
     echo "aws s3 cp . ${to} --recursive --exclude \"*\" --include \"${file}\""
     aws s3 cp . ${to} --recursive --exclude "*" --include "${file}"
 
-    # TODO: sync back new zip file to S3 via HSM?
-    #sudo lfs hsm_archive path/to/export/file
-
   done
+}
+
+cleanup(){
+
+  echo "Removing files generated during processing..."
+  rm -rfv /scratch/results/${AWS_BATCH_JOB_ID}/
+  echo "Files removed"
+
+  echo "Releasing tar file from Lustre filesystem..."
+  lfs hsm_release /scratch/results/${OBJECT_NAME}
+  echo "Release complete."
 }
 
 # Job results path in job results bucket
@@ -34,6 +42,7 @@ fi
 if [[ ${JOB_TYPE} == 'PARENT' ]]
   then
   upload "s3://${jobresults}/" "${SAMPLE_ID}_results.tar.gz" "/scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${SAMPLE_ID}"
+  cleanup
 fi
 
 # Record execution succeeded in CloudWatch

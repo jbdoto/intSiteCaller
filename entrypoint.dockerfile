@@ -6,8 +6,6 @@ RUN apt-get install -y gettext \
                        awscli
 RUN apt-get clean packages
 
-RUN  amazon-linux-extras install -y lustre2.10
-
 COPY ./pre-run.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/pre-run.sh
 

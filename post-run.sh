@@ -26,9 +26,11 @@ cleanup(){
   rm -rfv /scratch/results/${AWS_BATCH_JOB_ID}/
   echo "Files removed"
 
-  echo "Releasing tar file from Lustre filesystem..."
-  lfs hsm_release /scratch/results/${OBJECT_NAME}
-  echo "Release complete."
+# TODO: this is temporarily disabled because I need to figure out how to correctly install
+# lustre 2.12 under debian buster-slim...
+#  echo "Releasing tar file from Lustre filesystem..."
+#  lfs hsm_release /scratch/results/${OBJECT_NAME}
+#  echo "Release complete."
 }
 
 # Job results path in job results bucket

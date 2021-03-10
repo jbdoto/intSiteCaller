@@ -10,9 +10,6 @@ put_metric_data() {
   aws cloudwatch put-metric-data --metric-name JobDuration --namespace intSiteCaller --unit Milliseconds --value ${time_delta} --dimensions JobName=${JOB_NAME} --region ${AWS_REGION}
 }
 
-trap 'put_metric_data ${start_time}' exit
-
-start_time=$(date +%s%3N)
 echo "Starting ${JOB_NAME}..."
 
 if [[ ${JOB_TYPE} == 'CHILD' ]]
@@ -20,6 +17,9 @@ then
   cd /scratch/results/${PARENT_AWS_BATCH_JOB_ID}/${PARENT_AWS_BATCH_JOB_ATTEMPT};
   run.sh $@
 else
+
+  start_time=$(date +%s%3N)
+
   # parent job sets up directories, downloads, uploads, and cleans up.
   exec_dir=/scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}; mkdir -p ${exec_dir}; cd ${exec_dir}
 
@@ -28,5 +28,9 @@ else
   run.sh $@
 
   post-run.sh ${exec_dir}
+
+  # Cardinality of capturing all uniquely named child jobs (ie: Align_Seqs-G6RV5_1..Align_Seqs-G6RV5_60)
+  # could be $$$...keep it simple, just tracking parent job, 'intsitecaller'.
+  trap 'put_metric_data ${start_time}' exit
 
 fi

@@ -14,10 +14,14 @@ readpsl <- function(pslFile, toNull=NULL) {
   
   psl <- lapply(pslFile, function(f) {
     message("Decompressing: ",f)
-    # gzip -d decompress, -k keep original, -f force overwrite of psl file
-    system(paste("gzip -dkf", f))
     # cleave off .gz suffix to get filename:
     decompressedFilename <- substr(f, 0, nchar(f) - 3)
+    # aws linux 2 gzip version is missing -k option...
+    # https://unix.stackexchange.com/questions/46786/how-to-tell-gzip-to-keep-original-file
+    # gzip -d decompress, -f force overwrite of psl file
+    gzipExpression <- paste("gzip -df < ", f, " > ", decompressedFilename)
+    message(gzipExpression)
+    system(gzipExpression)
     message(paste("Reading: ", decompressedFilename))
     data.table::fread(decompressedFilename , sep="\t" )
   })

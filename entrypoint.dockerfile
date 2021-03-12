@@ -1,10 +1,10 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-RUN apt-get update
-RUN apt-get install -y gettext \
+RUN yum update -y
+RUN yum install -y gettext \
                        awscli
-RUN apt-get clean packages
+RUN yum clean -y all
 
 COPY ./pre-run.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/pre-run.sh
@@ -21,6 +21,6 @@ RUN chmod +x /usr/local/bin/run.sh
 WORKDIR /scratch
 
 # Make RUN commands use the new environment:
-SHELL ["conda", "run", "-n", "intSiteCaller", "/bin/bash", "-c"]
+SHELL ["/opt/conda/bin/conda", "run", "-n", "intSiteCaller", "/bin/bash", "-c"]
 
 ENTRYPOINT [ "entrypoint.sh" ]

@@ -14,14 +14,14 @@ echo "Starting ${JOB_NAME}..."
 
 if [[ ${JOB_TYPE} == 'CHILD' ]]
 then
-  cd /scratch/results/${PARENT_AWS_BATCH_JOB_ID}/${PARENT_AWS_BATCH_JOB_ATTEMPT};
+  cd /scratch/results/${SAMPLE_ID}/${PARENT_AWS_BATCH_JOB_ID}/${PARENT_AWS_BATCH_JOB_ATTEMPT};
   run.sh $@
 else
 
   start_time=$(date +%s%3N)
 
   # parent job sets up directories, downloads, uploads, and cleans up.
-  exec_dir=/scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}; mkdir -p ${exec_dir}; cd ${exec_dir}
+  exec_dir=/scratch/results/${SAMPLE_ID}/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}; mkdir -p ${exec_dir}; cd ${exec_dir}
 
   pre-run.sh ${exec_dir}
 

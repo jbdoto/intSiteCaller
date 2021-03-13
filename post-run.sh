@@ -4,46 +4,53 @@ upload(){
   
   set -o noglob
 
-  local to=$1
-  local files=$2
-  local directory_path=$3
+  local file=$1
+  local directory_path=$2
+  # move into exec_dir (where results are) set by entrypoint.sh, compress results:
+  echo "Compressing results at ${directory_path} into ${file}..."
+  tar -czf "${file}" "${directory_path}"
 
-  for file in ${files}
-  do
-    # move into exec_dir (where results are) set by entrypoint.sh, compress results:
-    echo "Compressing results at ${directory_path} into ${file}..."
-    tar -czvf "${file}" "${directory_path}"
+  echo "Archiving results tar file back to S3 results bucket"
+  lfs hsm_archive ${file}
 
-    echo "aws s3 cp . ${to} --recursive --exclude \"*\" --include \"${file}\""
-    aws s3 cp . ${to} --recursive --exclude "*" --include "${file}"
-
+  # wait until archive complete:
+  # For a 6.8GB file archiving takes about 3 minutes...
+  while : ; do
+      # https://docs.aws.amazon.com/fsx/latest/LustreGuide/exporting-files-hsm.html
+      REMAINING_FILES=`lfs hsm_action ${file} | grep "ARCHIVE" | wc -l`
+      echo "Files remaining: $REMAINING_FILES"
+      [[ $REMAINING_FILES -gt 0 ]] || break
+      echo "$REMAINING_FILES remaining files to archive...waiting..."
+      sleep 10
   done
+
+  echo "Archive complete."
+
+  echo "Releasing results tar file from Lustre filesystem..."
+  lfs hsm_release ${file}
+  echo "Results release complete."
+
 }
 
 cleanup(){
 
+  cd /scratch/results
+
   echo "Removing files generated during processing..."
-  rm -rfv /scratch/results/${AWS_BATCH_JOB_ID}/
+  rm -rf /scratch/results/${SAMPLE_ID}
   echo "Files removed"
 
-# TODO: this is temporarily disabled because I need to figure out how to correctly install
-# lustre 2.12 under debian buster-slim...
-#  echo "Releasing tar file from Lustre filesystem..."
-#  lfs hsm_release /scratch/results/${OBJECT_NAME}
-#  echo "Release complete."
+  echo "Releasing tar file from Lustre filesystem..."
+  lfs hsm_release /scratch/results/${OBJECT_NAME}
+  echo "Release complete."
 }
-
-# Job results path in job results bucket
-if [[ $STATE_MACHINE_NAME ]]; then
-  jobresults=${JOBRESULTS_BUCKET}/${SAMPLE_ID}/${STATE_MACHINE_NAME}/${EXECUTION_NAME}
-else
-  jobresults=${JOBRESULTS_BUCKET}/${1}
-fi
 
 # Upload outputs post-parent job
 if [[ ${JOB_TYPE} == 'PARENT' ]]
   then
-  upload "s3://${jobresults}/" "${SAMPLE_ID}_results.tar.gz" "/scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${SAMPLE_ID}"
+  RESULTS_PATH="/scratch/results/${SAMPLE_ID}/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}"
+  # can't have output tar file in the same directory you're compressing...
+  upload "$RESULTS_PATH/${SAMPLE_ID}_results.tar.gz" "$RESULTS_PATH/${SAMPLE_ID}"
   cleanup
 fi
 

@@ -6,13 +6,13 @@
 prepare_workspace(){
   
   set -o noglob
-
-  # should be in /scratch/results/$BATCH_JOB_ID/$BATCH_JOB_ATTEMPT/ directory at this point...see entrypoint.sh
-  # sample data will end up in /scratch/results/$BATCH_JOB_ID/$BATCH_JOB_ATTEMPT/$SAMPLE_ID
+  RESULTS_PATH="/scratch/results/${SAMPLE_ID}/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}"
+  # should be in /scratch/results/${SAMPLE_ID}/$BATCH_JOB_ID/$BATCH_JOB_ATTEMPT/ directory at this point...see entrypoint.sh
+  # sample data will end up in /scratch/results/${SAMPLE_ID}/$BATCH_JOB_ID/$BATCH_JOB_ATTEMPT/$SAMPLE_ID
   # For Lustre-based workloads, we don't need to download, files should be there.
   # OBJECT_NAME name parameter actually contains path info, like 'samples/G6RV5.tar.gz'
   # FILENAME just has G6RV5.tar.gz
-  cp /scratch/results/${OBJECT_NAME} /scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${FILENAME}
+  cp /scratch/results/${OBJECT_NAME} $RESULTS_PATH/${FILENAME}
 
   # decompress tar.gz files:
   echo "I am in directory:"
@@ -20,9 +20,9 @@ prepare_workspace(){
 
   if [[ ${FILENAME} == *.tar.gz ]]
   then
-    cd /scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/
-    echo "decompressing /scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${FILENAME}..."
-    tar -xzvf "/scratch/results/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}/${FILENAME}"
+    cd $RESULTS_PATH
+    echo "decompressing $RESULTS_PATH/${FILENAME}..."
+    tar -xzvf "$RESULTS_PATH/${FILENAME}"
   else
     echo "tar.gz format not detected: ${FILENAME}."
   fi

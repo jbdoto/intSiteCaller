@@ -34,10 +34,10 @@ upload(){
 
 cleanup(){
 
-  cd /scratch/results
-
+  # full path to this batch job id, removal won't interfere with other concurrent processing:
+  local results_path=$1
   echo "Removing files generated during processing..."
-  rm -rf /scratch/results/${SAMPLE_ID}
+  rm -rf "$results_path"
   echo "Files removed"
 
   echo "Releasing tar file from Lustre filesystem..."
@@ -51,7 +51,7 @@ if [[ ${JOB_TYPE} == 'PARENT' ]]
   RESULTS_PATH="/scratch/results/${SAMPLE_ID}/${AWS_BATCH_JOB_ID}/${AWS_BATCH_JOB_ATTEMPT}"
   # can't have output tar file in the same directory you're compressing...
   upload "$RESULTS_PATH/${SAMPLE_ID}_results.tar.gz" "$RESULTS_PATH/${SAMPLE_ID}"
-  cleanup
+  cleanup "/scratch/results/${SAMPLE_ID}/${AWS_BATCH_JOB_ID}/"
 fi
 
 # Record execution succeeded in CloudWatch
